@@ -1,0 +1,38 @@
+{
+  "name": "behzadhosseinpoor/laravel-database-manager",
+  "description": "A Laravel package for managing MySQL, SQL Server and SQLite databases using Livewire.",
+  "keywords": [
+    "behzadhosseinpoor",
+    "laravel-database-manager"
+  ],
+  "homepage": "https://github.com/behzadhosseinpoor/laravel-database-manager",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Behzad HosseinPoor",
+      "email": "behzad.hp@yahoo.com",
+      "role": "Developer"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "BehzadHosseinPoor\\DatabaseManager\\": "src/"
+    }
+  },
+  "require": {
+    "php": "^8.0",
+    "laravel/framework": "^8.37|^9.0|^10.0|^11.0|^12.0"
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "BehzadHosseinPoor\\DatabaseManager\\DatabaseManagerServiceProvider"
+      ],
+      "aliases": {
+        "DatabaseManager": "BehzadHosseinPoor\\DatabaseManager\\DatabaseManager"
+      }
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
+}

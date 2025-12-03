@@ -1,0 +1,31 @@
+<?php
+
+namespace App\Providers;
+
+use BehzadHosseinPoor\DatabaseManager\DatabaseManagerApplicationServiceProvider;
+use Illuminate\Support\Facades\Gate;
+
+class DatabaseManagerServiceProvider extends DatabaseManagerApplicationServiceProvider
+{
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        parent::boot();
+    }
+
+    /**
+     * Register the Database Manager gate.
+     *
+     * This gate determines who can access Database Manager in non-local environments.
+     */
+    protected function gate(): void
+    {
+        Gate::define('viewDatabaseManager', function ($user = null) {
+            return in_array(optional($user)->email, [
+
+            ]);
+        });
+    }
+}
