@@ -1,14 +1,18 @@
 import AppLayout from './layout/AppLayout.vue'
-import dashboard from './screens/Dashboard.vue'
+import Dashboard from "./screens/Dashboard.vue";
 
 export default [
     {
-        path: '/',
+        path: '/:connection?',
         component: AppLayout,
+        props: true,
         children: [
-            {path: '', redirect: '/dashboard'},
-
-            {path: 'dashboard', name: 'dashboard', component: dashboard},
+            {
+                path: '',
+                name: 'dashboard',
+                component: Dashboard,
+                meta: {title: 'Dashboard'}
+            },
         ]
     }
 ];

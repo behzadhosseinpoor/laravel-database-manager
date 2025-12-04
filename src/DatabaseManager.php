@@ -93,6 +93,8 @@ class DatabaseManager
     {
         return [
             'path' => config('database-manager.path'),
+            'default_connection' => config('database-manager.default_connection'),
+            'connections' => json_encode(config('database-manager.connections')),
         ];
     }
 }

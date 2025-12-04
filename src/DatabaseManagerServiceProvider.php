@@ -9,6 +9,7 @@ use BehzadHosseinPoor\DatabaseManager\Console\InstallCommand;
 use Illuminate\Contracts\Foundation\CachesRoutes;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use InvalidArgumentException;
 
 class DatabaseManagerServiceProvider extends ServiceProvider
 {
@@ -37,6 +38,7 @@ class DatabaseManagerServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->validateConfig();
         $this->normalizeConfig();
         $this->registerRoutes();
         $this->registerResources();
@@ -51,8 +53,52 @@ class DatabaseManagerServiceProvider extends ServiceProvider
      */
     protected function normalizeConfig(): void
     {
-        if (!$this->app['config']->get('database-manager.name')) {
-            $this->app['config']->set('database-manager.name', $this->app['config']->get('app.name'));
+        $config = $this->app['config'];
+
+        if (!$config->get('database-manager.name')) {
+            $config->set('database-manager.name', $config->get('app.name'));
+        }
+
+        if (!$config->get('database-manager.default_connection')) {
+            $connections = $config->get('database-manager.connections', []);
+
+            if (!empty($connections)) {
+                $config->set('database-manager.default_connection', $connections[0]);
+            }
+        }
+    }
+
+    /**
+     * Validate the Database Manager configuration.
+     *
+     * @return void
+     */
+    protected function validateConfig(): void
+    {
+        $config = $this->app['config']->get('database-manager');
+
+        $supported = ['mysql', 'sqlite'];
+
+        if (empty($config['connections']) || !is_array($config['connections'])) {
+            throw new InvalidArgumentException(
+                "database-manager.connections must contain at least one connection."
+            );
+        }
+
+        foreach ($config['connections'] as $connection) {
+            if (!in_array($connection, $supported, true)) {
+                throw new InvalidArgumentException(
+                    "Unsupported database connection [$connection] found in database-manager.connections."
+                );
+            }
+        }
+
+        if (!empty($config['default_connection'])) {
+            if (!in_array($config['default_connection'], $config['connections'], true)) {
+                throw new InvalidArgumentException(
+                    "database-manager.default_connection [{$config['default_connection']}] must exist in database-manager.connections."
+                );
+            }
         }
     }
 
