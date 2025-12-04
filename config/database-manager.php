@@ -9,8 +9,6 @@ return [
         'web'
     ],
     'connections' => [
-        'mysql',
-        'sqlite',
-        'sqlsrv'
+        'mysql'
     ]
 ];

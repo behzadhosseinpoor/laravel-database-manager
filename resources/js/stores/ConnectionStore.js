@@ -1,4 +1,4 @@
-// noinspection JSUnresolvedReference,JSUnusedGlobalSymbols
+// noinspection JSUnresolvedReference
 
 import {defineStore} from 'pinia';
 import {ref} from 'vue';
@@ -21,23 +21,10 @@ export const useConnectionStore = defineStore('connection', () => {
         }
     }
 
-    function toggleConnection(conn) {
-        if (connections.value.includes(conn)) {
-            connections.value = connections.value.filter(c => c !== conn);
-
-            if (defaultConnection.value === conn) {
-                defaultConnection.value = connections.value[0] || null;
-            }
-        } else {
-            connections.value.push(conn);
-        }
-    }
-
     return {
         connections,
         defaultConnection,
         setConnections,
         setDefault,
-        toggleConnection
     };
 });

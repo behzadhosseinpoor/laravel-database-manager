@@ -81,7 +81,7 @@ function changeConnection(conn) {
   store.setDefault(conn);
 
   router.push({
-    name: 'dashboard',
+    name: 'overview',
     params: {connection: conn}
   });
 }

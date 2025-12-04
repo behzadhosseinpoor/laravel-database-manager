@@ -1,5 +1,5 @@
 import AppLayout from './layout/AppLayout.vue'
-import Dashboard from "./screens/Dashboard.vue";
+import Overview from "./screens/Overview.vue";
 
 export default [
     {
@@ -9,9 +9,9 @@ export default [
         children: [
             {
                 path: '',
-                name: 'dashboard',
-                component: Dashboard,
-                meta: {title: 'Dashboard'}
+                name: 'overview',
+                component: Overview,
+                meta: {title: 'Overview'}
             },
         ]
     }

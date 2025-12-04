@@ -18,7 +18,7 @@ const items = computed(() => {
   const list = [
     {
       label: connection.value,
-      to: {name: 'dashboard', params: {connection: connection.value}},
+      to: {name: 'overview', params: {connection: connection.value}},
       clickable: true
     }
   ];

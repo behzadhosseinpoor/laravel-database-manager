@@ -77,7 +77,7 @@ class DatabaseManagerServiceProvider extends ServiceProvider
     {
         $config = $this->app['config']->get('database-manager');
 
-        $supported = ['mysql', 'sqlite'];
+        $supported = ['mysql'];
 
         if (empty($config['connections']) || !is_array($config['connections'])) {
             throw new InvalidArgumentException(

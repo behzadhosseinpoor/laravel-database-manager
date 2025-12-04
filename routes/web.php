@@ -1,10 +1,10 @@
 <?php
 
+use BehzadHosseinPoor\DatabaseManager\Http\Middleware\ValidateConnection;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('api')->group(function () {
-
+Route::prefix('api/{connection}')->middleware(ValidateConnection::class)->group(function () {
+    Route::get('overview', 'DatabaseOverviewController@index')->name('database-manager.overview.index');
 });
 
-// Catch-all Route...
 Route::get('/{view?}', 'HomeController@index')->where('view', '(.*)')->name('database-manager.index');
