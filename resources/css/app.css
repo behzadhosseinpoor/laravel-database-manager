@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@tailwind utilities;
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #9ca3af;
+    border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background: #4b5563;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background: #374151;
+}

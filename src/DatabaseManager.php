@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Js;
 use JsonException;
+use RuntimeException;
 
 class DatabaseManager
 {
@@ -50,8 +51,12 @@ class DatabaseManager
      */
     public static function css(): HtmlString
     {
+        if (($app = @file_get_contents(__DIR__ . '/../dist/app.css')) === false) {
+            throw new RuntimeException('Unable to load the Database Manager dashboard CSS.');
+        }
+
         return new HtmlString(<<<HTML
-            <style></style>
+            <style>$app</style>
             HTML
         );
     }
@@ -64,11 +69,16 @@ class DatabaseManager
      */
     public static function js(): HtmlString
     {
+        if (($js = @file_get_contents(__DIR__ . '/../dist/app.js')) === false) {
+            throw new RuntimeException('Unable to load the Database Manager dashboard JavaScript.');
+        }
+
         $databaseManager = Js::from(static::scriptVariables());
 
         return new HtmlString(<<<HTML
             <script type="module">
-                window.databaseManager = $databaseManager;
+                window.DatabaseManager = $databaseManager;
+                {$js}
             </script>
             HTML
         );

@@ -5,6 +5,7 @@
 
 namespace BehzadHosseinPoor\DatabaseManager;
 
+use BehzadHosseinPoor\DatabaseManager\Console\InstallCommand;
 use Illuminate\Contracts\Foundation\CachesRoutes;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -40,6 +41,7 @@ class DatabaseManagerServiceProvider extends ServiceProvider
         $this->registerRoutes();
         $this->registerResources();
         $this->offerPublishing();
+        $this->registerCommands();
     }
 
     /**
@@ -128,5 +130,19 @@ class DatabaseManagerServiceProvider extends ServiceProvider
     protected function registerResources(): void
     {
         $this->loadViewsFrom(__DIR__ . '/../resources/views', 'database-manager');
+    }
+
+    /**
+     * Register the Database Manager Artisan commands.
+     *
+     * @return void
+     */
+    protected function registerCommands(): void
+    {
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                InstallCommand::class,
+            ]);
+        }
     }
 }
