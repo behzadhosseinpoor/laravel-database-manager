@@ -23,7 +23,7 @@ const items = computed(() => {
     }
   ];
 
-  if (route.name === 'tables' || route.name === 'table-details') {
+  if (route.name === 'table') {
     list.push({
       label: 'Tables',
       to: {name: 'tables', params: {connection: connection.value}},

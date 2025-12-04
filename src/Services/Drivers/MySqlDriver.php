@@ -14,6 +14,16 @@ class MySqlDriver implements DatabaseDriver
         $this->conn = $connection;
     }
 
+    protected function db(): string
+    {
+        return DB::connection($this->conn)->getDatabaseName();
+    }
+
+    protected function q(string $sql, array $params = [])
+    {
+        return DB::connection($this->conn)->selectOne($sql, $params);
+    }
+
     public function name(): string
     {
         return 'mysql';
@@ -21,162 +31,160 @@ class MySqlDriver implements DatabaseDriver
 
     public function version(): string
     {
-        return DB::connection($this->conn)->selectOne('select version() as v')->v;
+        return $this->q("SELECT VERSION() AS v")->v;
     }
 
     public function size(): int
     {
-        $db = DB::connection($this->conn)->getDatabaseName();
-
-        $row = DB::connection($this->conn)->selectOne("
+        $row = $this->q("
             SELECT SUM(data_length + index_length) AS size
             FROM information_schema.tables
             WHERE table_schema = ?
-        ", [$db]);
+        ", [$this->db()]);
 
         return (int)($row->size ?? 0);
     }
 
-    public function stats(): array
+    public function tableCount(): int
     {
-        $db = DB::connection($this->conn)->getDatabaseName();
-
-        // Tables
-        $tables = DB::connection($this->conn)->selectOne("
+        return (int)$this->q("
             SELECT COUNT(*) AS c
             FROM information_schema.tables
             WHERE table_schema = ? AND table_type = 'BASE TABLE'
-        ", [$db]);
+        ", [$this->db()])->c;
+    }
 
-        // Views
-        $views = DB::connection($this->conn)->selectOne("
+    public function viewCount(): int
+    {
+        return (int)$this->q("
             SELECT COUNT(*) AS c
             FROM information_schema.tables
             WHERE table_schema = ? AND table_type = 'VIEW'
-        ", [$db]);
+        ", [$this->db()])->c;
+    }
 
-        // Columns
-        $columns = DB::connection($this->conn)->selectOne("
+    public function columnCount(): int
+    {
+        return (int)$this->q("
             SELECT COUNT(*) AS c
             FROM information_schema.columns
             WHERE table_schema = ?
-        ", [$db]);
+        ", [$this->db()])->c;
+    }
 
-        // Indexes (excluding PRIMARY)
-        $indexes = DB::connection($this->conn)->selectOne("
+    public function indexCount(): int
+    {
+        return (int)$this->q("
             SELECT COUNT(DISTINCT index_name) AS c
             FROM information_schema.statistics
             WHERE table_schema = ? AND index_name != 'PRIMARY'
-        ", [$db]);
+        ", [$this->db()])->c;
+    }
 
-        // Primary Keys
-        $primary = DB::connection($this->conn)->selectOne("
+    public function primaryKeyCount(): int
+    {
+        return (int)$this->q("
             SELECT COUNT(*) AS c
             FROM information_schema.statistics
             WHERE table_schema = ?
               AND index_name = 'PRIMARY'
-        ", [$db]);
+        ", [$this->db()])->c;
+    }
 
-        // Unique Indexes
-        $unique = DB::connection($this->conn)->selectOne("
+    public function uniqueIndexCount(): int
+    {
+        return (int)$this->q("
             SELECT COUNT(DISTINCT index_name) AS c
             FROM information_schema.statistics
             WHERE table_schema = ?
               AND NON_UNIQUE = 0
               AND index_name != 'PRIMARY'
-        ", [$db]);
+        ", [$this->db()])->c;
+    }
 
-        // Foreign Keys
-        $fk = DB::connection($this->conn)->selectOne("
+    public function foreignKeyCount(): int
+    {
+        return (int)$this->q("
             SELECT COUNT(*) AS c
             FROM information_schema.KEY_COLUMN_USAGE
             WHERE table_schema = ?
               AND referenced_table_name IS NOT NULL
-        ", [$db]);
+        ", [$this->db()])->c;
+    }
 
-        // Triggers
-        $triggers = DB::connection($this->conn)->selectOne("
+    public function triggerCount(): int
+    {
+        return (int)$this->q("
             SELECT COUNT(*) AS c
             FROM information_schema.triggers
             WHERE trigger_schema = ?
-        ", [$db]);
+        ", [$this->db()])->c;
+    }
 
-        // Stored Procedures
-        $procedures = DB::connection($this->conn)->selectOne("
+    public function procedureCount(): int
+    {
+        return (int)$this->q("
             SELECT COUNT(*) AS c
             FROM information_schema.routines
             WHERE routine_schema = ?
               AND routine_type = 'PROCEDURE'
-        ", [$db]);
+        ", [$this->db()])->c;
+    }
 
-        // Functions
-        $functions = DB::connection($this->conn)->selectOne("
+    public function functionCount(): int
+    {
+        return (int)$this->q("
             SELECT COUNT(*) AS c
             FROM information_schema.routines
             WHERE routine_schema = ?
               AND routine_type = 'FUNCTION'
-        ", [$db]);
+        ", [$this->db()])->c;
+    }
 
-
-        // Total Rows in DB (SUM of table_rows)
-        $totalRows = DB::connection($this->conn)->selectOne("
+    public function totalRows(): int
+    {
+        $row = $this->q("
             SELECT SUM(table_rows) AS c
             FROM information_schema.tables
             WHERE table_schema = ?
-        ", [$db]);
+        ", [$this->db()]);
 
-        // Database Charset / Collation
-        $charsetInfo = DB::connection($this->conn)->selectOne("
-            SELECT default_character_set_name AS charset,
-                   default_collation_name AS collation
+        return (int)($row->c ?? 0);
+    }
+
+    public function charset(): ?string
+    {
+        $row = $this->q("
+            SELECT default_character_set_name AS charset
             FROM information_schema.schemata
             WHERE schema_name = ?
-        ", [$db]);
+        ", [$this->db()]);
 
-        // Uptime
-        $uptime = DB::connection($this->conn)->selectOne("
-            SHOW GLOBAL STATUS LIKE 'Uptime'
-        ");
-
-        // Active Connections
-        $activeConns = DB::connection($this->conn)->selectOne("
-            SHOW STATUS WHERE variable_name = 'Threads_connected'
-        ");
-
-        return [
-            'table_count' => (int)$tables->c,
-            'view_count' => (int)$views->c,
-            'column_count' => (int)$columns->c,
-            'index_count' => (int)$indexes->c,
-
-            'primary_keys' => (int)$primary->c,
-            'unique_indexes' => (int)$unique->c,
-            'foreign_keys' => (int)$fk->c,
-
-            'triggers' => (int)$triggers->c,
-            'procedures' => (int)$procedures->c,
-            'functions' => (int)$functions->c,
-
-            'total_rows' => (int)($totalRows->c ?? 0),
-
-            'charset' => $charsetInfo->charset ?? null,
-            'collation' => $charsetInfo->collation ?? null,
-
-            'uptime_seconds' => (int)($uptime->Value ?? 0),
-            'active_connections' => (int)($activeConns->Value ?? 0),
-        ];
+        return $row->charset ?? null;
     }
 
-    public function tables(): array
+    public function collation(): ?string
     {
-        return collect(DB::connection($this->conn)
-            ->select("SHOW TABLES"))
-            ->map(fn($row) => array_values((array)$row)[0])
-            ->toArray();
+        $row = $this->q("
+            SELECT default_collation_name AS collation
+            FROM information_schema.schemata
+            WHERE schema_name = ?
+        ", [$this->db()]);
+
+        return $row->collation ?? null;
     }
 
-    public function runQuery(string $query): array
+    public function uptimeSeconds(): int
     {
-        return DB::connection($this->conn)->select($query);
+        $row = $this->q("SHOW GLOBAL STATUS LIKE 'Uptime'");
+
+        return (int)($row->Value ?? 0);
+    }
+
+    public function activeConnections(): int
+    {
+        $row = $this->q("SHOW STATUS WHERE variable_name = 'Threads_connected'");
+
+        return (int)($row->Value ?? 0);
     }
 }

@@ -10,9 +10,33 @@ interface DatabaseDriver
 
     public function size(): int;
 
-    public function stats(): array;
+    public function tableCount(): int;
 
-    public function tables(): array;
+    public function viewCount(): int;
 
-    public function runQuery(string $query): array;
+    public function columnCount(): int;
+
+    public function indexCount(): int;
+
+    public function primaryKeyCount(): int;
+
+    public function uniqueIndexCount(): int;
+
+    public function foreignKeyCount(): int;
+
+    public function triggerCount(): int;
+
+    public function procedureCount(): int;
+
+    public function functionCount(): int;
+
+    public function totalRows(): int;
+
+    public function charset(): ?string;
+
+    public function collation(): ?string;
+
+    public function uptimeSeconds(): int;
+
+    public function activeConnections(): int;
 }

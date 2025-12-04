@@ -3,9 +3,9 @@
   <div class="flex h-screen overflow-hidden bg-gray-100 dark:bg-gray-900 text-black dark:text-white p-2">
     <GlobalToast/>
 
-    <Sidebar :collapsed="sidebarCollapsed" @toggle="toggleSidebar"/>
+    <Sidebar/>
 
-    <div class="flex flex-col flex-1 h-full pl-1 transition-all duration-300">
+    <div class="flex flex-col flex-1 h-full pl-1">
       <Topbar @toggleSidebar="toggleSidebar"/>
 
       <div class="flex flex-col flex-1 pt-1 overflow-hidden">
@@ -45,18 +45,6 @@ import {useToastStore} from '../stores/ToastStore'
 export default {
   components: {GlobalToast, Breadcrumb, Sidebar, Topbar},
 
-  data() {
-    return {
-      sidebarCollapsed: true,
-    }
-  },
-
-  methods: {
-    toggleSidebar() {
-      this.sidebarCollapsed = !this.sidebarCollapsed;
-    }
-  },
-
   computed: {
     ready() {
       const ui = useUiStore();
@@ -84,13 +72,6 @@ export default {
 
     if (route.params.connection) {
       store.setDefault(route.params.connection);
-    }
-
-    if (!route.params.connection) {
-      router.push({
-        name: 'overview',
-        params: {connection: store.defaultConnection}
-      });
     }
 
     this.$watch(
