@@ -1,69 +1,78 @@
 <!--suppress JSUnresolvedReference -->
 <template>
-  <div class="space-y-4">
+  <div class="space-y-6">
     <div class="flex items-center justify-between">
-      <h1 class="text-2xl font-bold">
+      <h1 class="text-2xl font-bold tracking-tight">
         {{ connection }} Overview
       </h1>
 
-      <span class="text-sm p-2 rounded-md bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200">
+      <span class="text-sm px-3 py-1.5 rounded-md
+                   bg-blue-100 dark:bg-blue-900
+                   text-blue-700 dark:text-blue-200
+                   border border-blue-200/50 dark:border-blue-800/40">
         Driver: {{ overview.driver }}
       </span>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-gray-100 dark:bg-gray-900 rounded-md p-4 shadow">
-        <div class="text-sm text-gray-500 dark:text-gray-400">Tables</div>
-        <div class="text-2xl font-bold mt-1">{{ overview.stats.table_count.toLocaleString() }}</div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div
+          class="stat-card group">
+        <div class="stat-label">Tables</div>
+        <div class="stat-value">{{ overview.stats.table_count.toLocaleString() }}</div>
       </div>
 
-      <div class="bg-gray-100 dark:bg-gray-900 rounded-md p-4 shadow">
-        <div class="text-sm text-gray-500 dark:text-gray-400">Columns</div>
-        <div class="text-2xl font-bold mt-1">{{ overview.stats.column_count.toLocaleString() }}</div>
+      <div class="stat-card group">
+        <div class="stat-label">Columns</div>
+        <div class="stat-value">{{ overview.stats.column_count.toLocaleString() }}</div>
       </div>
 
-      <div class="bg-gray-100 dark:bg-gray-900 rounded-md p-4 shadow">
-        <div class="text-sm text-gray-500 dark:text-gray-400">Indexes</div>
-        <div class="text-2xl font-bold mt-1">{{ overview.stats.index_count.toLocaleString() }}</div>
+      <div class="stat-card group">
+        <div class="stat-label">Indexes</div>
+        <div class="stat-value">{{ overview.stats.index_count.toLocaleString() }}</div>
       </div>
 
-      <div class="bg-gray-100 dark:bg-gray-900 rounded-md p-4 shadow">
-        <div class="text-sm text-gray-500 dark:text-gray-400">Views</div>
-        <div class="text-2xl font-bold mt-1">{{ overview.stats.view_count.toLocaleString() }}</div>
+      <div class="stat-card group">
+        <div class="stat-label">Views</div>
+        <div class="stat-value">{{ overview.stats.view_count.toLocaleString() }}</div>
       </div>
 
-      <div class="bg-gray-100 dark:bg-gray-900 rounded-md p-4 shadow">
-        <div class="text-sm text-gray-500 dark:text-gray-400">Rows</div>
-        <div class="text-2xl font-bold mt-1">{{ overview.stats.total_rows.toLocaleString() }}</div>
+      <div class="stat-card group">
+        <div class="stat-label">Rows</div>
+        <div class="stat-value">{{ overview.stats.total_rows.toLocaleString() }}</div>
       </div>
 
-      <div class="bg-gray-100 dark:bg-gray-900 rounded-md p-4 shadow">
-        <div class="text-sm text-gray-500 dark:text-gray-400">Triggers</div>
-        <div class="text-2xl font-bold mt-1">{{ overview.stats.triggers.toLocaleString() }}</div>
+      <div class="stat-card group">
+        <div class="stat-label">Triggers</div>
+        <div class="stat-value">{{ overview.stats.triggers.toLocaleString() }}</div>
       </div>
 
-      <div class="bg-gray-100 dark:bg-gray-900 rounded-md p-4 shadow">
-        <div class="text-sm text-gray-500 dark:text-gray-400">Stored Procedures</div>
-        <div class="text-2xl font-bold mt-1">{{ overview.stats.procedures.toLocaleString() }}</div>
+      <div class="stat-card group">
+        <div class="stat-label">Stored Procedures</div>
+        <div class="stat-value">{{ overview.stats.procedures.toLocaleString() }}</div>
       </div>
 
-      <div class="bg-gray-100 dark:bg-gray-900 rounded-md p-4 shadow">
-        <div class="text-sm text-gray-500 dark:text-gray-400">Functions</div>
-        <div class="text-2xl font-bold mt-1">{{ overview.stats.functions.toLocaleString() }}</div>
+      <div class="stat-card group">
+        <div class="stat-label">Functions</div>
+        <div class="stat-value">{{ overview.stats.functions.toLocaleString() }}</div>
       </div>
 
-      <div class="bg-gray-100 dark:bg-gray-900 rounded-md p-4 shadow">
-        <div class="text-sm text-gray-500 dark:text-gray-400">Version</div>
-        <div class="text-xl font-semibold mt-1">{{ overview.version }}</div>
+      <div class="stat-card group">
+        <div class="stat-label">Version</div>
+        <div class="text-xl font-semibold">
+          {{ overview.version }}
+        </div>
       </div>
 
-      <div class="bg-gray-100 dark:bg-gray-900 rounded-md p-4 shadow">
-        <div class="text-sm text-gray-500 dark:text-gray-400">Database Size</div>
-        <div class="text-xl font-semibold mt-1">{{ humanSize(overview.size) }}</div>
+      <div class="stat-card group">
+        <div class="stat-label">Database Size</div>
+        <div class="text-xl font-semibold">
+          {{ humanSize(overview.size) }}
+        </div>
       </div>
     </div>
   </div>
 </template>
+
 
 <script>
 import {computed, watch} from "vue";
@@ -129,7 +138,7 @@ export default {
   methods: {
     loadOverview(conn) {
       return this.$http
-          .get('api/' + conn + '/overview')
+          .get('/' + DatabaseManager.basePath + '/api/' + conn + '/overview')
           .then(res => {
             this.overview = res.data;
           });

@@ -39,4 +39,6 @@ interface DatabaseDriver
     public function uptimeSeconds(): int;
 
     public function activeConnections(): int;
+
+    public function tables(): array;
 }
