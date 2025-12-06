@@ -6,25 +6,27 @@
     <Sidebar/>
 
     <div class="flex flex-col flex-1 h-full pl-1">
-      <Topbar @toggleSidebar="toggleSidebar"/>
+      <Topbar/>
 
       <div class="flex flex-col flex-1 pt-1 overflow-hidden">
         <div class="bg-white dark:bg-black rounded-md flex flex-col h-full overflow-hidden">
           <div
-              class="shrink-0 rounded-t-md border-b-2 p-4 text-sm h-12 border-b-gray-100 dark:border-b-gray-900">
+              class="shrink-0 border-b-2 p-4 text-sm h-12 border-b-gray-100 dark:border-b-gray-900">
             <Breadcrumb/>
           </div>
 
-          <main class="flex-1 overflow-y-auto overscroll-contain rounded-b-md p-4 relative">
-            <transition name="fade">
-              <div
-                  v-if="!ready"
-                  class="absolute inset-0 flex items-center justify-center bg-white/95 dark:bg-black/95 z-10">
-                <div class="animate-spin h-10 w-10 border-2 border-gray-300 border-t-purple-400 rounded-full"></div>
-              </div>
-            </transition>
+          <main class="flex-1 overflow-y-auto overscroll-contain relative">
+            <div class="p-4 min-h-full">
+              <transition name="fade">
+                <div
+                    v-if="!ready"
+                    class="absolute inset-0 flex items-center justify-center bg-white/95 dark:bg-black/95 z-10">
+                  <div class="animate-spin h-10 w-10 border-2 border-gray-300 border-t-purple-400 rounded-full"></div>
+                </div>
+              </transition>
 
-            <router-view/>
+              <router-view/>
+            </div>
           </main>
         </div>
       </div>

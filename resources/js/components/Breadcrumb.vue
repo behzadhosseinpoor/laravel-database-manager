@@ -23,7 +23,7 @@ const items = computed(() => {
     }
   ];
 
-  if (route.name === 'table') {
+  if (route.name === 'table-browse' || route.name === 'table-structure') {
     list.push({
       label: 'Tables',
       to: {name: 'tables', params: {connection: connection.value}},
@@ -36,12 +36,12 @@ const items = computed(() => {
       label: table.value,
       clickable: false
     });
-  } else {
-    list.push({
-      label: pageTitle.value,
-      clickable: false
-    });
   }
+
+  list.push({
+    label: pageTitle.value,
+    clickable: false
+  });
 
   return list;
 });
