@@ -33,7 +33,7 @@
              bg-blue-500 text-white hover:bg-blue-600
              dark:bg-blue-600 dark:hover:bg-blue-700
              flex items-center gap-1 transition cursor-pointer">
-          <i class="fa-solid fa-table"></i>
+          <i class="fa-solid fa-magnifying-glass"></i>
           Browse
         </button>
       </div>

@@ -17,7 +17,6 @@ class DatabaseTableStructureController extends Controller
         return response()->json([
             'columns' => $driver->getColumns($table),
             'indexes' => $driver->getIndexes($table),
-            'rows' => $driver->getTableRowsCount($table),
         ]);
     }
 }

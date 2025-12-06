@@ -2,26 +2,17 @@
   <header
       class="h-12 flex items-center justify-between pb-1 shrink-0">
     <nav class="flex items-center gap-2 text-sm font-medium">
-      <RouterLink
-          :to="{ name: 'overview', params: { connection } }"
-          class="p-2 flex items-center gap-2 rounded-md
-             hover:bg-gray-200 dark:hover:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400"
-          :class="isActive('overview')
-        ? 'text-blue-600 dark:text-blue-400 bg-gray-200 dark:bg-gray-800 shadow-sm'
-        : 'text-gray-700 dark:text-gray-300'">
-        <i class="fa-solid fa-chart-pie text-xs"></i>
-        <span>Overview</span>
-      </RouterLink>
-
-      <RouterLink
-          :to="{ name: 'tables', params: { connection } }"
-          class="p-2 flex items-center gap-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400"
-          :class="isActive('tables')
-        ? 'text-blue-600 dark:text-blue-400 bg-gray-200 dark:bg-gray-800 shadow-sm'
-        : 'text-gray-700 dark:text-gray-300'">
-        <i class="fa-solid fa-table text-xs"></i>
-        <span>Tables</span>
-      </RouterLink>
+      <button
+          v-for="item in menuItems"
+          :key="item.label"
+          @click="item.click"
+          :class="[
+            'p-2 flex items-center gap-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer',
+            item.active ? 'text-blue-600 dark:text-blue-400 bg-gray-200 dark:bg-gray-800 shadow-sm' : 'text-gray-700 dark:text-gray-300'
+        ]">
+        <i :class="['fa-solid', `fa-${item.icon}`, 'text-xs']"></i>
+        <span>{{ item.label }}</span>
+      </button>
     </nav>
 
     <div class="flex items-center gap-2">
@@ -41,18 +32,21 @@
 </template>
 
 <script>
-import {ref, watch} from 'vue';
-import {useRoute} from 'vue-router';
+import {watch} from 'vue';
+import {useRoute, useRouter} from 'vue-router';
 
 export default {
   data() {
     return {
       connection: null,
+      table: null,
+      mode: 'system',
     };
   },
 
   mounted() {
     this.connection = this.route.params.connection;
+    this.table = this.route.params.table;
 
     const saved = localStorage.getItem('theme-mode');
 
@@ -63,9 +57,14 @@ export default {
     watch(
         () => this.route.params.connection,
         (newConn) => {
-          if (!newConn) return;
+          this.connection = newConn || null;
+        }
+    );
 
-          this.connection = newConn;
+    watch(
+        () => this.route.params.table,
+        (newTable) => {
+          this.table = newTable || null;
         }
     );
   },
@@ -79,10 +78,6 @@ export default {
       localStorage.setItem('theme-mode', this.mode);
 
       this.applyTheme(this.mode);
-    },
-
-    isActive(name) {
-      return this.route.name === name;
     },
 
     applyTheme(val) {
@@ -103,8 +98,41 @@ export default {
   setup() {
     return {
       route: useRoute(),
-      mode: ref('system'),
+      router: useRouter(),
     };
+  },
+
+  computed: {
+    menuItems() {
+      const items = [
+        {
+          label: 'Overview',
+          icon: 'chart-pie',
+          active: this.route.name === 'overview',
+          click: () => this.router.push({name: 'overview', params: {connection: this.connection.value}})
+        },
+        {
+          label: 'Tables',
+          icon: 'table',
+          active: this.route.name === 'tables',
+          click: () => this.router.push({name: 'tables', params: {connection: this.connection.value}})
+        }
+      ];
+
+      if (this.table) {
+        items.push({
+          label: `Browse`,
+          icon: 'magnifying-glass',
+          active: this.route.name === 'table-browse',
+          click: () => this.router.push({
+            name: 'table-browse',
+            params: {connection: this.connection.value, table: this.table.value}
+          })
+        });
+      }
+
+      return items;
+    }
   }
 }
 </script>

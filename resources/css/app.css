@@ -36,3 +36,11 @@
     shadow-sm transition-all duration-100 cursor-default
     hover:shadow-md hover:bg-gray-200 dark:hover:bg-gray-800;
 }
+
+.stat-label {
+    @apply text-sm text-gray-500 dark:text-gray-400;
+}
+
+.stat-value {
+    @apply text-2xl font-bold mt-1 text-gray-800 dark:text-gray-100;
+}

@@ -5,7 +5,7 @@
       <div class="w-12 h-12 rounded-xl flex items-center justify-center
                 bg-purple-500/10 text-purple-600 dark:text-purple-300
                 dark:bg-purple-500/20 text-2xl">
-        <i class="fa-solid fa-table"></i>
+        <i class="fa-solid fa-magnifying-glass"></i>
       </div>
 
       <div>
@@ -15,15 +15,10 @@
                 :title="'Connection: ' + connection">
             {{ connection }}
           </span>
-          <span
-              class="text-sm px-2 py-1 rounded-md bg-purple-200 dark:bg-purple-800 text-purple-700 dark:text-purple-300"
-              :title="'Table: ' + table">
-            {{ table }}
-          </span>
         </h1>
 
         <p class="text-gray-500 dark:text-gray-400 mt-0.5">
-          {{ structure.rows.toLocaleString() }} total
+          {{ table }}
         </p>
       </div>
     </div>
@@ -53,7 +48,6 @@ export default {
       structure: {
         columns: [],
         indexes: [],
-        rows: 0,
       },
       columns: [],
     };
