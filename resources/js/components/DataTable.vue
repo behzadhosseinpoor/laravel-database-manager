@@ -148,7 +148,8 @@ export default {
     showActions: {type: Boolean, default: false},
     defaultPageSize: {type: Number, default: 10},
     pageSizes: {type: Array, default: () => [5, 10, 20, 50, 100]},
-    url: {type: String, default: null}
+    url: {type: String, default: null},
+    useQueryParams: {type: Boolean, default: true}
   },
 
   setup() {
@@ -157,11 +158,21 @@ export default {
 
   data() {
     return {
-      currentPage: Number(this.route.query.page) || 1,
-      pageSize: Number(this.route.query.pageSize) || this.defaultPageSize,
+      currentPage: this.useQueryParams
+          ? Number(this.route.query.page) || 1
+          : 1,
 
-      sortField: this.route.query.sort || null,
-      sortDir: this.route.query.dir || null,
+      pageSize: this.useQueryParams
+          ? Number(this.route.query.pageSize) || this.defaultPageSize
+          : this.defaultPageSize,
+
+      sortField: this.useQueryParams
+          ? this.route.query.sort || null
+          : null,
+
+      sortDir: this.useQueryParams
+          ? this.route.query.dir || null
+          : null,
 
       serverData: [],
       serverTotal: 0,
@@ -189,6 +200,8 @@ export default {
     },
 
     updateQueryParams() {
+      if (!this.useQueryParams) return;
+
       this.router.replace({
         query: {
           ...this.route.query,
@@ -230,12 +243,8 @@ export default {
     },
 
     totalPages() {
-      const total = this.url
-          ? this.serverTotal
-          : this.data.length;
-
+      const total = this.url ? this.serverTotal : this.data.length;
       const pages = Math.ceil(total / this.pageSize);
-
       return pages > 0 ? pages : 1;
     },
 
@@ -287,7 +296,10 @@ export default {
 
   watch: {
     tableState() {
-      this.updateQueryParams();
+      if (this.useQueryParams) {
+        this.updateQueryParams();
+      }
+
       this.loadServerData();
     }
   },

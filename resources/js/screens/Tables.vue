@@ -30,11 +30,23 @@
         <button
             @click="browse(row)"
             class="px-3 py-1.5 rounded-md font-medium
-             bg-blue-500 text-white hover:bg-blue-600
-             dark:bg-blue-600 dark:hover:bg-blue-700
-             flex items-center gap-1 transition cursor-pointer">
+           flex items-center gap-1 transition cursor-pointer
+           shadow-sm hover:shadow-md
+           text-white bg-blue-600 hover:bg-blue-700
+           dark:bg-blue-700 dark:hover:bg-blue-800">
           <i class="fa-solid fa-magnifying-glass"></i>
           Browse
+        </button>
+
+        <button
+            @click="structure(row)"
+            class="px-3 py-1.5 rounded-md font-medium
+           flex items-center gap-1 transition cursor-pointer
+           shadow-sm hover:shadow-md
+           text-white bg-red-600 hover:bg-red-700
+           dark:bg-red-700 dark:hover:bg-red-800">
+          <i class="fa-solid fa-diagram-project"></i>
+          Structure
         </button>
       </div>
     </template>
@@ -100,6 +112,13 @@ export default {
     browse(row) {
       this.router.push({
         name: "table-browse",
+        params: {table: row.name, connection: this.connection}
+      })
+    },
+
+    structure(row) {
+      this.router.push({
+        name: "table-structure",
         params: {table: row.name, connection: this.connection}
       })
     },

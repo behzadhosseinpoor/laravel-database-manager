@@ -41,6 +41,7 @@ import DataTable from "../components/DataTable.vue";
 
 export default {
   components: {DataTable},
+
   data() {
     return {
       connection: null,
@@ -109,8 +110,8 @@ export default {
           " - Browse";
     },
 
-    mapColumnsForTable(structureColumns) {
-      return structureColumns.columns.map(c => ({
+    mapColumnsForTable(structure) {
+      return structure.columns.map(c => ({
         field: c.name,
         header: c.name,
         sortable: true

@@ -129,6 +129,16 @@ export default {
             params: {connection: this.connection.value, table: this.table.value}
           })
         });
+
+        items.push({
+          label: `Structure`,
+          icon: 'folder-tree',
+          active: this.route.name === 'table-structure',
+          click: () => this.router.push({
+            name: 'table-structure',
+            params: {connection: this.connection.value, table: this.table.value}
+          })
+        });
       }
 
       return items;

@@ -4,6 +4,7 @@ import AppLayout from './layout/AppLayout.vue'
 import Overview from "./screens/Overview.vue";
 import Tables from "./screens/Tables.vue";
 import TableBrowse from "./screens/TableBrowse.vue";
+import TableStructure from "./screens/TableStructure.vue";
 
 export default [
     {
@@ -31,6 +32,12 @@ export default [
                         name: "table-browse",
                         component: TableBrowse,
                         meta: {title: 'Browse'}
+                    },
+                    {
+                        path: "structure",
+                        name: "table-structure",
+                        component: TableStructure,
+                        meta: {title: 'Structure'}
                     }
                 ],
             },
