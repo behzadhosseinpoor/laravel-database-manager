@@ -1,19 +1,30 @@
 <!--suppress JSUnresolvedReference -->
 <template>
-  <div class="space-y-6">
-    <div class="flex items-center justify-between">
-      <h1 class="text-2xl font-bold tracking-tight">
-        {{ connection }} Overview
-      </h1>
+  <div class="mb-5 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl flex items-center justify-center
+                bg-purple-500/10 text-purple-600 dark:text-purple-300
+                dark:bg-purple-500/20 text-2xl">
+        <i class="fa-solid fa-chart-pie"></i>
+      </div>
 
-      <span class="text-sm px-3 py-1.5 rounded-md
-                   bg-blue-100 dark:bg-blue-900
-                   text-blue-700 dark:text-blue-200
-                   border border-blue-200/50 dark:border-blue-800/40">
-        Driver: {{ overview.driver }}
-      </span>
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-3">
+          Overview
+          <span class="text-sm px-2 py-1 rounded-md bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+                :title="'Connection: ' + connection">
+            {{ connection }}
+          </span>
+        </h1>
+
+        <p class="text-gray-500 dark:text-gray-400 mt-0.5">
+          Driver: {{ overview.driver }}
+        </p>
+      </div>
     </div>
+  </div>
 
+  <div class="space-y-6">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <div
           class="stat-card group">
@@ -76,7 +87,7 @@
 
 <script>
 import {computed, watch} from "vue";
-import {useRoute} from 'vue-router';
+import {useRoute, useRouter} from 'vue-router';
 import {useUiStore} from '../stores/UiStore';
 
 export default {
@@ -111,26 +122,23 @@ export default {
   },
 
   mounted() {
-    const route = useRoute();
-    const ui = useUiStore();
-
-    this.connection = computed(() => route.params.connection).value;
+    this.connection = computed(() => this.route.params.connection).value;
 
     document.title = "Database Manager - " + this.connection + " - Overview";
 
-    ui.showLoading();
-    this.loadOverview(this.connection).finally(() => ui.hideLoading());
+    this.ui.showLoading();
+    this.loadOverview(this.connection).finally(() => this.ui.hideLoading());
 
     watch(
-        () => route.params.connection,
+        () => this.route.params.connection,
         (newConn) => {
           if (!newConn) return;
 
           this.connection = newConn;
-          document.title = "Database Manager - " + newConn + " - Overview";
+          document.title = "Database Manager - " + this.connection + " - Overview";
 
-          ui.showLoading();
-          this.loadOverview(newConn).finally(() => ui.hideLoading());
+          this.ui.showLoading();
+          this.loadOverview(this.connection).finally(() => this.ui.hideLoading());
         }
     );
   },
@@ -143,16 +151,14 @@ export default {
             this.overview = res.data;
           });
     },
-
-    humanSize(bytes) {
-      const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-      let i = 0;
-      while (bytes >= 1024 && i < units.length - 1) {
-        bytes /= 1024;
-        i++;
-      }
-      return bytes.toFixed(2) + ' ' + units[i];
-    }
   },
+
+  setup() {
+    return {
+      route: useRoute(),
+      router: useRouter(),
+      ui: useUiStore()
+    };
+  }
 }
 </script>

@@ -23,15 +23,13 @@ const items = computed(() => {
     }
   ];
 
-  if (route.name === 'table-browse' || route.name === 'table-structure') {
+  if (table.value) {
     list.push({
       label: 'Tables',
       to: {name: 'tables', params: {connection: connection.value}},
       clickable: true
     });
-  }
 
-  if (table.value) {
     list.push({
       label: table.value,
       clickable: false

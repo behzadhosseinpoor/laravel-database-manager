@@ -1,5 +1,29 @@
 <!--suppress JSUnresolvedReference -->
 <template>
+  <div class="mb-5 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl flex items-center justify-center
+                bg-purple-500/10 text-purple-600 dark:text-purple-300
+                dark:bg-purple-500/20 text-2xl">
+        <i class="fa-solid fa-table"></i>
+      </div>
+
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-3">
+          Tables
+          <span class="text-sm px-2 py-1 rounded-md bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+                :title="'Connection: ' + connection">
+            {{ connection }}
+          </span>
+        </h1>
+
+        <p class="text-gray-500 dark:text-gray-400 mt-0.5">
+          {{ tables.length }} tables found
+        </p>
+      </div>
+    </div>
+  </div>
+
   <DataTable :data="tables" :columns="columns" :showActions="true">
     <template #actions="{ row }">
       <div class="flex items-center gap-2 justify-center">
@@ -11,16 +35,6 @@
              flex items-center gap-1 transition cursor-pointer">
           <i class="fa-solid fa-table"></i>
           Browse
-        </button>
-
-        <button
-            @click="structure(row)"
-            class="px-3 py-1.5 rounded-md text-sm font-medium
-             bg-gray-600 text-white hover:bg-gray-700
-             dark:bg-gray-700 dark:hover:bg-gray-800
-             flex items-center gap-1 transition cursor-pointer">
-          <i class="fa-solid fa-diagram-project"></i>
-          Structure
         </button>
       </div>
     </template>
@@ -38,34 +52,41 @@ export default {
 
   data() {
     return {
+      connection: null,
       tables: [],
       columns: [
         {field: 'name', header: 'Name', sortable: true},
         {field: 'rows', header: 'Rows', sortable: true},
         {field: 'engine', header: 'Engine', sortable: true},
         {field: 'collation', header: 'Collation', sortable: true},
-        {field: 'size', header: 'Size', sortable: true},
+        {
+          field: 'size',
+          header: 'Size',
+          sortable: true,
+          format: (value) => this.humanSize(value)
+        },
       ]
     };
   },
 
   mounted() {
-    const conn = computed(() => this.route.params.connection).value;
+    this.connection = computed(() => this.route.params.connection).value;
 
-    document.title = "Database Manager - " + conn + " - Tables";
+    document.title = "Database Manager - " + this.connection + " - Tables";
 
     this.ui.showLoading();
-    this.loadTables(conn).finally(() => this.ui.hideLoading());
+    this.loadTables(this.connection).finally(() => this.ui.hideLoading());
 
     watch(
         () => this.route.params.connection,
         (newConn) => {
           if (!newConn) return;
 
-          document.title = "Database Manager - " + newConn + " - Tables";
+          this.connection = newConn;
+          document.title = "Database Manager - " + this.connection + " - Tables";
 
           this.ui.showLoading();
-          this.loadTables(newConn).finally(() => this.ui.hideLoading());
+          this.loadTables(this.connection).finally(() => this.ui.hideLoading());
         }
     );
   },
@@ -81,13 +102,6 @@ export default {
     browse(row) {
       this.router.push({
         name: "table-browse",
-        params: {table: row.name, connection: this.connection}
-      })
-    },
-
-    structure(row) {
-      this.router.push({
-        name: "table-structure",
         params: {table: row.name, connection: this.connection}
       })
     },

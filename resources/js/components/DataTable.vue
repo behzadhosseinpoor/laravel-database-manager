@@ -40,7 +40,7 @@
               v-for="col in columns"
               :key="col.field"
               :class="['border-l border-gray-300 dark:border-gray-700', sizeClasses]">
-            {{ row[col.field] }}
+            {{ col.format ? col.format(row[col.field], row) : row[col.field] }}
           </td>
 
           <td v-if="showActions"
