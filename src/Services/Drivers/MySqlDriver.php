@@ -1,9 +1,14 @@
 <?php
+/** @noinspection PhpIncompatibleReturnTypeInspection */
+
 /** @noinspection SqlNoDataSourceInspection */
 
 namespace BehzadHosseinPoor\DatabaseManager\Services\Drivers;
 
+use Illuminate\Database\MySqlConnection;
+use Illuminate\Database\Schema\MySqlBuilder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class MySqlDriver implements DatabaseDriver
 {
@@ -14,9 +19,14 @@ class MySqlDriver implements DatabaseDriver
         $this->conn = $connection;
     }
 
-    protected function db(): string
+    protected function db(): MySqlConnection
     {
-        return DB::connection($this->conn)->getDatabaseName();
+        return DB::connection($this->conn);
+    }
+
+    protected function schema(): MySqlBuilder
+    {
+        return Schema::connection($this->conn);
     }
 
     protected function qOne(string $sql, array $params = []): object
@@ -27,6 +37,11 @@ class MySqlDriver implements DatabaseDriver
     public function q($query, $bindings = []): array
     {
         return DB::connection($this->conn)->select($query, $bindings);
+    }
+
+    public function database(): string
+    {
+        return $this->db()->getDatabaseName();
     }
 
     public function name(): string
@@ -45,7 +60,7 @@ class MySqlDriver implements DatabaseDriver
             SELECT SUM(data_length + index_length) AS size
             FROM information_schema.tables
             WHERE table_schema = ?
-        ", [$this->db()]);
+        ", [$this->database()]);
 
         return (int)($row->size ?? 0);
     }
@@ -56,7 +71,7 @@ class MySqlDriver implements DatabaseDriver
             SELECT COUNT(*) AS c
             FROM information_schema.tables
             WHERE table_schema = ? AND table_type = 'BASE TABLE'
-        ", [$this->db()])->c;
+        ", [$this->database()])->c;
     }
 
     public function viewCount(): int
@@ -65,7 +80,7 @@ class MySqlDriver implements DatabaseDriver
             SELECT COUNT(*) AS c
             FROM information_schema.tables
             WHERE table_schema = ? AND table_type = 'VIEW'
-        ", [$this->db()])->c;
+        ", [$this->database()])->c;
     }
 
     public function columnCount(): int
@@ -74,7 +89,7 @@ class MySqlDriver implements DatabaseDriver
             SELECT COUNT(*) AS c
             FROM information_schema.columns
             WHERE table_schema = ?
-        ", [$this->db()])->c;
+        ", [$this->database()])->c;
     }
 
     public function indexCount(): int
@@ -83,7 +98,7 @@ class MySqlDriver implements DatabaseDriver
             SELECT COUNT(DISTINCT index_name) AS c
             FROM information_schema.statistics
             WHERE table_schema = ? AND index_name != 'PRIMARY'
-        ", [$this->db()])->c;
+        ", [$this->database()])->c;
     }
 
     public function primaryKeyCount(): int
@@ -93,7 +108,7 @@ class MySqlDriver implements DatabaseDriver
             FROM information_schema.statistics
             WHERE table_schema = ?
               AND index_name = 'PRIMARY'
-        ", [$this->db()])->c;
+        ", [$this->database()])->c;
     }
 
     public function uniqueIndexCount(): int
@@ -104,7 +119,7 @@ class MySqlDriver implements DatabaseDriver
             WHERE table_schema = ?
               AND NON_UNIQUE = 0
               AND index_name != 'PRIMARY'
-        ", [$this->db()])->c;
+        ", [$this->database()])->c;
     }
 
     public function foreignKeyCount(): int
@@ -114,7 +129,7 @@ class MySqlDriver implements DatabaseDriver
             FROM information_schema.KEY_COLUMN_USAGE
             WHERE table_schema = ?
               AND referenced_table_name IS NOT NULL
-        ", [$this->db()])->c;
+        ", [$this->database()])->c;
     }
 
     public function triggerCount(): int
@@ -123,7 +138,7 @@ class MySqlDriver implements DatabaseDriver
             SELECT COUNT(*) AS c
             FROM information_schema.triggers
             WHERE trigger_schema = ?
-        ", [$this->db()])->c;
+        ", [$this->database()])->c;
     }
 
     public function procedureCount(): int
@@ -133,7 +148,7 @@ class MySqlDriver implements DatabaseDriver
             FROM information_schema.routines
             WHERE routine_schema = ?
               AND routine_type = 'PROCEDURE'
-        ", [$this->db()])->c;
+        ", [$this->database()])->c;
     }
 
     public function functionCount(): int
@@ -143,7 +158,7 @@ class MySqlDriver implements DatabaseDriver
             FROM information_schema.routines
             WHERE routine_schema = ?
               AND routine_type = 'FUNCTION'
-        ", [$this->db()])->c;
+        ", [$this->database()])->c;
     }
 
     public function totalRows(): int
@@ -152,7 +167,7 @@ class MySqlDriver implements DatabaseDriver
             SELECT SUM(table_rows) AS c
             FROM information_schema.tables
             WHERE table_schema = ?
-        ", [$this->db()]);
+        ", [$this->database()]);
 
         return (int)($row->c ?? 0);
     }
@@ -163,7 +178,7 @@ class MySqlDriver implements DatabaseDriver
             SELECT default_character_set_name AS charset
             FROM information_schema.schemata
             WHERE schema_name = ?
-        ", [$this->db()]);
+        ", [$this->database()]);
 
         return $row->charset ?? null;
     }
@@ -174,7 +189,7 @@ class MySqlDriver implements DatabaseDriver
             SELECT default_collation_name AS collation
             FROM information_schema.schemata
             WHERE schema_name = ?
-        ", [$this->db()]);
+        ", [$this->database()]);
 
         return $row->collation ?? null;
     }
@@ -206,7 +221,7 @@ class MySqlDriver implements DatabaseDriver
             FROM information_schema.tables
             WHERE table_schema = ?
             ORDER BY TABLE_NAME;
-        ", [$this->db()]);
+        ", [$this->database()]);
 
         return collect($rows)->map(function ($t) {
             return [
@@ -217,5 +232,55 @@ class MySqlDriver implements DatabaseDriver
                 'size' => (int)(($t->data_size ?? 0) + ($t->index_size ?? 0)),
             ];
         })->toArray();
+    }
+
+    public function hasTable(string $table): bool
+    {
+        return $this->schema()->hasTable($table);
+    }
+
+    public function getColumns(string $table): array
+    {
+        return $this->schema()->getColumns($table);
+    }
+
+    public function getIndexes(string $table): array
+    {
+        return $this->schema()->getIndexes($table);
+    }
+
+    public function getTableRowsCount(string $table, string $type = 'schema'): int
+    {
+        if ($type === 'schema') {
+            return (int)$this->qOne("
+                SELECT table_rows AS c
+                FROM information_schema.tables
+                WHERE table_schema = ?
+                AND table_name = ?;
+            ", [$this->database(), $table])->c;
+        }
+
+        if ($type === 'db') {
+            return $this->db()->table($table)->count();
+        }
+
+        return 0;
+    }
+
+    public function browse(string $table, int $page, int $perPage, ?string $orderBy = null, ?string $orderType = null): array
+    {
+        $query = $this->db()->table($table);
+
+        $offset = ($page - 1) * $perPage;
+
+        if ($orderBy) {
+            $query->orderBy($orderBy, $orderType);
+        }
+
+        $data = $query->offset($offset)
+            ->limit($perPage)
+            ->get();
+
+        return $data->toArray();
     }
 }

@@ -77,7 +77,7 @@ class DatabaseManagerServiceProvider extends ServiceProvider
     {
         $config = $this->app['config']->get('database-manager');
 
-        $supported = ['mysql'];
+        $supportedDrivers = ['mysql'];
 
         if (empty($config['connections']) || !is_array($config['connections'])) {
             throw new InvalidArgumentException(
@@ -85,10 +85,20 @@ class DatabaseManagerServiceProvider extends ServiceProvider
             );
         }
 
-        foreach ($config['connections'] as $connection) {
-            if (!in_array($connection, $supported, true)) {
+        foreach ($config['connections'] as $connectionName) {
+            $connectionConfig = config("database.connections.$connectionName");
+
+            if (!$connectionConfig) {
                 throw new InvalidArgumentException(
-                    "Unsupported database connection [$connection] found in database-manager.connections."
+                    "Connection [$connectionName] does not exist in config/database.php."
+                );
+            }
+
+            $driver = $connectionConfig['driver'] ?? null;
+
+            if (!in_array($driver, $supportedDrivers, true)) {
+                throw new InvalidArgumentException(
+                    "Connection [$connectionName] uses unsupported driver [$driver]."
                 );
             }
         }

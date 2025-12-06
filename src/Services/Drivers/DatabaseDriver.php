@@ -41,4 +41,14 @@ interface DatabaseDriver
     public function activeConnections(): int;
 
     public function tables(): array;
+
+    public function hasTable(string $table): bool;
+
+    public function getColumns(string $table): array;
+
+    public function getIndexes(string $table): array;
+
+    public function getTableRowsCount(string $table, string $type = 'schema'): int;
+
+    public function browse(string $table, int $page, int $perPage, ?string $orderBy = null, ?string $orderType = null): array;
 }

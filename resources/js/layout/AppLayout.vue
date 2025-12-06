@@ -8,14 +8,14 @@
     <div class="flex flex-col flex-1 h-full pl-1">
       <Topbar/>
 
-      <div class="flex flex-col flex-1 pt-1 overflow-hidden">
+      <div class="flex flex-col flex-1 pt-1 overflow-hidden w-[calc(100vw-4rem)]">
         <div class="bg-white dark:bg-black rounded-md flex flex-col h-full overflow-hidden">
           <div
               class="shrink-0 border-b-2 p-4 text-sm h-12 border-b-gray-100 dark:border-b-gray-900">
             <Breadcrumb/>
           </div>
 
-          <main class="flex-1 overflow-y-auto overscroll-contain relative">
+          <main class="flex-1 overflow-auto overscroll-contain relative">
             <div class="p-4 min-h-full">
               <transition name="fade">
                 <div
@@ -55,35 +55,26 @@ export default {
   },
 
   mounted() {
-    const store = useConnectionStore();
-    const route = useRoute();
-    const router = useRouter();
-    const toast = useToastStore();
+    this.store.setConnections(JSON.parse(window.DatabaseManager.connections));
+    this.store.setDefault(window.DatabaseManager.default_connection);
 
-    store.setConnections(JSON.parse(window.DatabaseManager.connections));
-    store.setDefault(window.DatabaseManager.default_connection);
+    if (this.route.params.connection && !this.store.connections.includes(this.route.params.connection)) {
+      this.toast.show('[' + this.route.params.connection + '] must exist in connections.', 'error');
 
-    if (route.params.connection && !store.connections.includes(route.params.connection)) {
-      toast.show('[' + route.params.connection + '] must exist in connections.', 'error');
-
-      router.push({
+      this.router.push({
         name: 'overview',
-        params: {connection: store.defaultConnection}
+        params: {connection: this.store.defaultConnection}
       });
     }
+  },
 
-    if (route.params.connection) {
-      store.setDefault(route.params.connection);
-    }
-
-    this.$watch(
-        () => this.$route.params.connection,
-        (val) => {
-          if (val) {
-            store.setDefault(val);
-          }
-        }
-    );
+  setup() {
+    return {
+      store: useConnectionStore(),
+      route: useRoute(),
+      router: useRouter(),
+      toast: useToastStore(),
+    };
   }
 }
 </script>

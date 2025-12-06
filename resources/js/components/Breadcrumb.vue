@@ -1,50 +1,4 @@
 <!--suppress JSUnresolvedReference -->
-<script setup>
-import {computed} from 'vue';
-import {useRoute, useRouter} from 'vue-router';
-
-const route = useRoute();
-const router = useRouter();
-
-const connection = computed(() => route.params.connection);
-
-const table = computed(() => route.params.table);
-
-const pageTitle = computed(() => {
-  return route.meta.title || route.name || '';
-});
-
-const items = computed(() => {
-  const list = [
-    {
-      label: connection.value,
-      to: {name: 'overview', params: {connection: connection.value}},
-      clickable: true
-    }
-  ];
-
-  if (table.value) {
-    list.push({
-      label: 'Tables',
-      to: {name: 'tables', params: {connection: connection.value}},
-      clickable: true
-    });
-
-    list.push({
-      label: table.value,
-      clickable: false
-    });
-  }
-
-  list.push({
-    label: pageTitle.value,
-    clickable: false
-  });
-
-  return list;
-});
-</script>
-
 <template>
   <nav class="text-gray-600 dark:text-gray-400 flex items-center h-full gap-1">
     <template v-for="(item, index) in items" :key="index">
@@ -64,3 +18,76 @@ const items = computed(() => {
     </template>
   </nav>
 </template>
+
+<script>
+import {useRoute, useRouter} from 'vue-router';
+import {watch} from "vue";
+
+export default {
+  data() {
+    return {
+      connection: null,
+      table: null,
+      items: [],
+    };
+  },
+
+  mounted() {
+    this.connection = this.route.params.connection;
+    this.table = this.route.params.table;
+
+    this.calcItems();
+
+    watch(
+        () => this.route.fullPath,
+        () => {
+          this.connection = this.route.params.connection;
+          this.table = this.route.params.table;
+
+          this.calcItems();
+        }
+    );
+  },
+
+  methods: {
+    pageTitle() {
+      return this.route.meta.title || this.route.name || '';
+    },
+
+    calcItems() {
+      this.items = [];
+
+      this.items.push({
+        label: this.connection,
+        to: {name: 'overview', params: {connection: this.connection}},
+        clickable: true
+      });
+
+      if (this.table) {
+        this.items.push({
+          label: 'Tables',
+          to: {name: 'tables', params: {connection: this.connection}},
+          clickable: true
+        });
+
+        this.items.push({
+          label: this.table,
+          clickable: false
+        });
+      }
+
+      this.items.push({
+        label: this.pageTitle(),
+        clickable: false
+      });
+    }
+  },
+
+  setup() {
+    return {
+      route: useRoute(),
+      router: useRouter(),
+    };
+  }
+}
+</script>

@@ -40,46 +40,71 @@
   </header>
 </template>
 
-<script setup>
-import {onMounted, ref} from 'vue';
+<script>
+import {ref, watch} from 'vue';
 import {useRoute} from 'vue-router';
 
-const route = useRoute();
+export default {
+  data() {
+    return {
+      connection: null,
+    };
+  },
 
-const connection = route.params.connection;
+  mounted() {
+    this.connection = this.route.params.connection;
 
-const mode = ref('system');
+    const saved = localStorage.getItem('theme-mode');
 
-onMounted(() => {
-  const saved = localStorage.getItem('theme-mode');
-  mode.value = saved ?? 'system';
-  applyTheme(mode.value);
-})
+    this.mode = saved ?? 'system';
 
-function cycleMode() {
-  if (mode.value === 'system') mode.value = 'light';
-  else if (mode.value === 'light') mode.value = 'dark';
-  else mode.value = 'system';
+    this.applyTheme(this.mode);
 
-  localStorage.setItem('theme-mode', mode.value);
-  applyTheme(mode.value);
-}
+    watch(
+        () => this.route.params.connection,
+        (newConn) => {
+          if (!newConn) return;
 
-function isActive(name) {
-  return route.name === name;
-}
+          this.connection = newConn;
+        }
+    );
+  },
 
-function applyTheme(val) {
-  const root = document.getElementById('database-manager');
+  methods: {
+    cycleMode() {
+      if (this.mode === 'system') this.mode = 'light';
+      else if (this.mode === 'light') this.mode = 'dark';
+      else this.mode = 'system';
 
-  if (val === 'light') {
-    root.classList.remove('dark');
-  } else if (val === 'dark') {
-    root.classList.add('dark');
-  } else {
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    if (prefersDark) root.classList.add('dark');
-    else root.classList.remove('dark');
+      localStorage.setItem('theme-mode', this.mode);
+
+      this.applyTheme(this.mode);
+    },
+
+    isActive(name) {
+      return this.route.name === name;
+    },
+
+    applyTheme(val) {
+      const root = document.getElementById('database-manager');
+
+      if (val === 'light') {
+        root.classList.remove('dark');
+      } else if (val === 'dark') {
+        root.classList.add('dark');
+      } else {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (prefersDark) root.classList.add('dark');
+        else root.classList.remove('dark');
+      }
+    }
+  },
+
+  setup() {
+    return {
+      route: useRoute(),
+      mode: ref('system'),
+    };
   }
 }
 </script>

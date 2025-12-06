@@ -1,3 +1,4 @@
+<!--suppress JSUnusedGlobalSymbols -->
 <template>
   <div class="space-y-4">
     <div class="overflow-x-auto rounded-md border border-gray-300 dark:border-gray-700">
@@ -32,7 +33,22 @@
         </thead>
 
         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+        <tr v-if="loading">
+          <td :colspan="columns.length + (showActions ? 1 : 0)"
+              class="py-6 text-gray-500 dark:text-gray-400 text-center">
+            Loading...
+          </td>
+        </tr>
+
+        <tr v-else-if="paginatedData.length === 0">
+          <td :colspan="columns.length + (showActions ? 1 : 0)"
+              class="py-6 text-gray-500 dark:text-gray-400 text-center">
+            No data available.
+          </td>
+        </tr>
+
         <tr
+            v-else
             v-for="row in paginatedData"
             :key="row.id || row.name"
             class="hover:bg-gray-50 dark:hover:bg-gray-900 transition">
@@ -49,6 +65,35 @@
           </td>
         </tr>
         </tbody>
+
+        <tfoot class="bg-gray-100 dark:bg-gray-800">
+        <tr>
+          <th
+              v-for="col in columns"
+              :key="col.field"
+              @click="col.sortable && toggleSort(col.field)"
+              class="border-l border-gray-300 dark:border-gray-700 cursor-pointer select-none"
+              :class="[
+                sizeClasses,
+                col.sortable ? 'hover:bg-gray-200 dark:hover:bg-gray-700' : '',
+                'text-center']">
+            <span>{{ col.header }}</span>
+            <span v-if="col.sortable" class="ml-1 text-xs">
+              <span v-if="sortField === col.field && sortDir === 'asc'"><i class="fa-solid fa-arrow-up-short-wide"></i></span>
+              <span v-else-if="sortField === col.field && sortDir === 'desc'"><i
+                  class="fa-solid fa-arrow-down-wide-short"></i></span>
+            </span>
+          </th>
+
+          <th v-if="showActions"
+              class="border-l border-gray-300 dark:border-gray-700 cursor-pointer select-none"
+              :class="[
+                sizeClasses,
+                'text-center']">
+            Actions
+          </th>
+        </tr>
+        </tfoot>
       </table>
     </div>
 
@@ -57,18 +102,18 @@
       <div class="flex items-center gap-2">
         <button
             @click="currentPage--"
-            :disabled="currentPage === 1"
+            :disabled="currentPage <= 1 || totalPages === 0"
             class="px-3 py-1 text-sm rounded-md border border-gray-300 dark:border-gray-700 disabled:opacity-30 cursor-pointer">
           Previous
         </button>
 
         <span class="text-sm">
-          Page {{ currentPage }} of {{ totalPages }}
+          Page {{ totalPages === 0 ? 0 : currentPage }} of {{ totalPages }}
         </span>
 
         <button
             @click="currentPage++"
-            :disabled="currentPage === totalPages"
+            :disabled="currentPage >= totalPages || totalPages === 0"
             class="px-3 py-1 text-sm rounded-md border border-gray-300 dark:border-gray-700 disabled:opacity-30 cursor-pointer">
           Next
         </button>
@@ -102,7 +147,8 @@ export default {
     size: {type: String, default: "md"},
     showActions: {type: Boolean, default: false},
     defaultPageSize: {type: Number, default: 10},
-    pageSizes: {type: Array, default: () => [5, 10, 20, 50, 100]}
+    pageSizes: {type: Array, default: () => [5, 10, 20, 50, 100]},
+    url: {type: String, default: null}
   },
 
   setup() {
@@ -115,24 +161,11 @@ export default {
       pageSize: Number(this.route.query.pageSize) || this.defaultPageSize,
 
       sortField: this.route.query.sort || null,
-      sortDir: this.route.query.dir || "asc"
-    }
-  },
+      sortDir: this.route.query.dir || null,
 
-  watch: {
-    currentPage() {
-      this.updateQueryParams();
-    },
-    pageSize() {
-      this.currentPage = 1;
-      this.updateQueryParams();
-    },
-
-    sortField() {
-      this.updateQueryParams();
-    },
-    sortDir() {
-      this.updateQueryParams();
+      serverData: [],
+      serverTotal: 0,
+      loading: false,
     }
   },
 
@@ -165,10 +198,47 @@ export default {
           dir: this.sortDir
         }
       })
-    }
+    },
+
+    async loadServerData() {
+      if (!this.url) return;
+
+      this.loading = true;
+      this.serverData = [];
+
+      try {
+        const res = await this.$http.get(this.url, {
+          params: {
+            page: this.currentPage,
+            per_page: this.pageSize,
+            order_by: this.sortField,
+            order_type: this.sortDir
+          }
+        });
+
+        this.serverData = res.data.data ?? [];
+        this.serverTotal = res.data.total ?? 0;
+      } finally {
+        this.loading = false;
+      }
+    },
   },
 
   computed: {
+    effectiveData() {
+      return this.url ? this.serverData : this.data;
+    },
+
+    totalPages() {
+      const total = this.url
+          ? this.serverTotal
+          : this.data.length;
+
+      const pages = Math.ceil(total / this.pageSize);
+
+      return pages > 0 ? pages : 1;
+    },
+
     sizeClasses() {
       const sizes = {
         sm: "px-2 py-1 text-xs",
@@ -180,6 +250,8 @@ export default {
     },
 
     sortedData() {
+      if (this.url) return this.effectiveData;
+
       if (!this.sortField) return this.data;
 
       return [...this.data].sort((a, b) => {
@@ -197,13 +269,32 @@ export default {
     },
 
     paginatedData() {
-      const start = (this.currentPage - 1) * this.pageSize;
+      if (this.url) return this.effectiveData;
 
+      const start = (this.currentPage - 1) * this.pageSize;
       return this.sortedData.slice(start, start + this.pageSize);
     },
 
-    totalPages() {
-      return Math.ceil(this.data.length / this.pageSize);
+    tableState() {
+      return [
+        this.currentPage,
+        this.pageSize,
+        this.sortField,
+        this.sortDir
+      ];
+    }
+  },
+
+  watch: {
+    tableState() {
+      this.updateQueryParams();
+      this.loadServerData();
+    }
+  },
+
+  mounted() {
+    if (this.url) {
+      this.loadServerData();
     }
   }
 }

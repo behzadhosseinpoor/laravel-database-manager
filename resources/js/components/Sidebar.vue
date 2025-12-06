@@ -11,13 +11,13 @@
 
     <nav class="flex-1 overflow-y-auto overscroll-contain pt-1">
       <button
-          v-for="conn in connections"
+          v-for="conn in store.connections"
           :key="conn"
           @click="changeConnection(conn)"
           :title="conn"
           :class="[
             'w-full flex items-center justify-center p-2 cursor-pointer rounded-md font-semibold text-xl hover:bg-gray-200 dark:hover:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400',
-            defaultConnection === conn
+            connection === conn
             ? 'text-blue-600 dark:text-blue-400 bg-gray-200 dark:bg-gray-800 shadow-sm'
             : 'text-gray-700 dark:text-gray-300']">
         {{ conn.charAt(0).toUpperCase() }}
@@ -27,22 +27,48 @@
   </aside>
 </template>
 
-<script setup>
-import {useConnectionStore} from '../stores/ConnectionStore.js';
-import {storeToRefs} from 'pinia';
-import {useRouter} from 'vue-router';
+<script>
+import {watch} from 'vue';
+import {useRoute, useRouter} from 'vue-router';
+import {useConnectionStore} from "../stores/ConnectionStore.js";
+import {useToastStore} from "../stores/ToastStore.js";
 
-const store = useConnectionStore();
-const router = useRouter();
+export default {
+  data() {
+    return {
+      connection: null,
+    };
+  },
 
-const {connections, defaultConnection} = storeToRefs(store);
+  mounted() {
+    this.connection = this.route.params.connection;
 
-function changeConnection(conn) {
-  store.setDefault(conn);
+    watch(
+        () => this.route.params.connection,
+        (newConn) => {
+          if (!newConn) return;
 
-  router.push({
-    name: 'overview',
-    params: {connection: conn}
-  });
+          this.connection = newConn;
+        }
+    );
+  },
+
+  methods: {
+    changeConnection(conn) {
+      this.router.push({
+        name: 'overview',
+        params: {connection: conn}
+      });
+    }
+  },
+
+  setup() {
+    return {
+      store: useConnectionStore(),
+      route: useRoute(),
+      router: useRouter(),
+      toast: useToastStore(),
+    };
+  }
 }
 </script>

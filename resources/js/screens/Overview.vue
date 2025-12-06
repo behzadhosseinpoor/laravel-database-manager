@@ -86,7 +86,7 @@
 
 
 <script>
-import {computed, watch} from "vue";
+import {watch} from "vue";
 import {useRoute, useRouter} from 'vue-router';
 import {useUiStore} from '../stores/UiStore';
 
@@ -122,12 +122,10 @@ export default {
   },
 
   mounted() {
-    this.connection = computed(() => this.route.params.connection).value;
+    this.connection = this.route.params.connection;
 
-    document.title = "Database Manager - " + this.connection + " - Overview";
-
-    this.ui.showLoading();
-    this.loadOverview(this.connection).finally(() => this.ui.hideLoading());
+    this.updateTitle();
+    this.getData();
 
     watch(
         () => this.route.params.connection,
@@ -135,10 +133,9 @@ export default {
           if (!newConn) return;
 
           this.connection = newConn;
-          document.title = "Database Manager - " + this.connection + " - Overview";
 
-          this.ui.showLoading();
-          this.loadOverview(this.connection).finally(() => this.ui.hideLoading());
+          this.updateTitle();
+          this.getData();
         }
     );
   },
@@ -151,6 +148,15 @@ export default {
             this.overview = res.data;
           });
     },
+
+    updateTitle() {
+      document.title = "Database Manager - " + this.connection + " - Overview";
+    },
+
+    getData() {
+      this.ui.showLoading();
+      this.loadOverview(this.connection).finally(() => this.ui.hideLoading());
+    }
   },
 
   setup() {

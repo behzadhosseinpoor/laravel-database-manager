@@ -24,7 +24,7 @@
     </div>
   </div>
 
-  <DataTable :data="tables" :columns="columns" :showActions="true">
+  <DataTable :key="tableKey" :data="tables" :columns="columns" :showActions="true">
     <template #actions="{ row }">
       <div class="flex items-center gap-2 justify-center">
         <button
@@ -42,7 +42,7 @@
 </template>
 
 <script>
-import {computed, watch} from "vue";
+import {watch} from "vue";
 import {useUiStore} from '../stores/UiStore';
 import DataTable from "../components/DataTable.vue";
 import {useRoute, useRouter} from "vue-router";
@@ -70,12 +70,10 @@ export default {
   },
 
   mounted() {
-    this.connection = computed(() => this.route.params.connection).value;
+    this.connection = this.route.params.connection;
 
-    document.title = "Database Manager - " + this.connection + " - Tables";
-
-    this.ui.showLoading();
-    this.loadTables(this.connection).finally(() => this.ui.hideLoading());
+    this.updateTitle();
+    this.getData();
 
     watch(
         () => this.route.params.connection,
@@ -83,10 +81,9 @@ export default {
           if (!newConn) return;
 
           this.connection = newConn;
-          document.title = "Database Manager - " + this.connection + " - Tables";
 
-          this.ui.showLoading();
-          this.loadTables(this.connection).finally(() => this.ui.hideLoading());
+          this.updateTitle();
+          this.getData();
         }
     );
   },
@@ -99,12 +96,22 @@ export default {
             this.tables = res.data;
           });
     },
+
     browse(row) {
       this.router.push({
         name: "table-browse",
         params: {table: row.name, connection: this.connection}
       })
     },
+
+    updateTitle() {
+      document.title = "Database Manager - " + this.connection + " - Tables";
+    },
+
+    getData() {
+      this.ui.showLoading();
+      this.loadTables(this.connection).finally(() => this.ui.hideLoading());
+    }
   },
 
   setup() {
@@ -113,6 +120,17 @@ export default {
       router: useRouter(),
       ui: useUiStore()
     };
+  },
+
+  computed: {
+    tableKey() {
+      return JSON.stringify({
+        columns: this.columns,
+        connection: this.connection,
+        table: this.table,
+        rows: this.tables.length,
+      });
+    }
   }
 }
 </script>
