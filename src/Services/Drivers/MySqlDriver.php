@@ -211,7 +211,7 @@ class MySqlDriver implements DatabaseDriver
     public function tables(): array
     {
         $rows = $this->q("
-            SELECT 
+            SELECT
                 TABLE_NAME AS name,
                 TABLE_ROWS AS row_count,
                 ENGINE AS engine,
@@ -282,8 +282,8 @@ class MySqlDriver implements DatabaseDriver
             ->get();
 
         return [
-            'data' => $data->toArray(),
-            'total' => $this->getTableRowsCount($table),
+            'data' => $this->fixBinary($data->all()),
+            'total' => $this->getTableRowsCount($table, 'db'),
         ];
     }
 
@@ -306,7 +306,7 @@ class MySqlDriver implements DatabaseDriver
 
         if ($userHasLimit) {
             $rows = $this->q($query);
-            $rows = json_decode(json_encode($rows), true);
+            $rows = $this->fixBinary($rows);
 
             return [
                 'rows' => $rows,
@@ -325,7 +325,7 @@ class MySqlDriver implements DatabaseDriver
         $offset = ($page - 1) * $perPage;
 
         $rows = $this->q("$cleanSql LIMIT $perPage OFFSET $offset");
-        $rows = json_decode(json_encode($rows), true);
+        $rows = $this->fixBinary($rows);
 
         return [
             'rows' => $rows,
@@ -334,5 +334,17 @@ class MySqlDriver implements DatabaseDriver
             'per_page' => $perPage,
             'time' => (int)((microtime(true) - $start) * 1000),
         ];
+    }
+
+    private function fixBinary(array $data): array
+    {
+        return collect($data)
+            ->map(fn($row) => collect((array)$row)
+                ->map(fn($value) => is_string($value) && !mb_check_encoding($value, 'UTF-8')
+                    ? base64_encode($value)
+                    : $value
+                )->toArray()
+            )
+            ->toArray();
     }
 }

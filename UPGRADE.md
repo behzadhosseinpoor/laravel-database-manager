@@ -1,8 +1,8 @@
 # Upgrade Guide
 
-## Upgrading to v1.0.0
+## Upgrading to v1.0.1
 
-This is the first stable release of Laravel Database Manager.
+This release contains important bug fixes related to binary and non‑UTF‑8 database fields.
 
 ### Minimum PHP Version
 

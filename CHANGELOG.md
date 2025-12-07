@@ -1,6 +1,13 @@
 # Release Notes
 
-## [Unreleased](https://github.com/behzadhosseinpoor/laravel-database-manager/compare/v1.0.0...main)
+## [Unreleased](https://github.com/behzadhosseinpoor/laravel-database-manager/compare/v1.0.1...main)
+
+## v1.0.1 (2025-12-07)
+
+### Fixed
+
+- Corrected handling of binary/geometry/BLOB fields
+- Added automatic base64 encoding for invalid UTF-8 columns
 
 ## v1.0.0 (2025-12-07)
 
