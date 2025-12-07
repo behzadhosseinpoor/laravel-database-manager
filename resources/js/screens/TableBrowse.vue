@@ -114,7 +114,7 @@ export default {
       return structure.columns.map(c => ({
         field: c.name,
         header: c.name,
-        sortable: true
+        sortable: true,
       }));
     }
   },

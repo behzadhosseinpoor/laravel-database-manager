@@ -56,7 +56,8 @@
               v-for="col in columns"
               :key="col.field"
               :class="['border-l border-gray-300 dark:border-gray-700', sizeClasses]">
-            {{ col.format ? col.format(row[col.field], row) : row[col.field] }}
+            <span v-if="row[col.field] === null" class="text-gray-400 dark:text-gray-500 italic">NULL</span>
+            <span v-else>{{ col.format ? col.format(row[col.field]) : row[col.field] }}</span>
           </td>
 
           <td v-if="showActions"

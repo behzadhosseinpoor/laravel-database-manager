@@ -111,7 +111,6 @@ export default {
             field: "default",
             header: "Default",
             sortable: true,
-            format: (v) => (v === null ? "—" : v)
           },
           {
             field: "auto_increment",
@@ -123,13 +122,11 @@ export default {
             field: "collation",
             header: "Collation",
             sortable: true,
-            format: (v) => (v ?? "—")
           },
           {
             field: "comment",
             header: "Comment",
-            sortable: false,
-            format: (v) => (v ?? "—")
+            sortable: false
           }
         ],
         indexes: [
