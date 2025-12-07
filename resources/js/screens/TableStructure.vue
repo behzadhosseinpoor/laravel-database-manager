@@ -1,4 +1,4 @@
-<!--suppress JSUnresolvedReference -->
+<!--suppress JSUnresolvedReference, JSValidateTypes -->
 <template>
   <div class="mb-5 flex items-center justify-between">
     <div class="flex items-center gap-4">
@@ -203,7 +203,7 @@ export default {
       return this.$http
           .get('/' + DatabaseManager.basePath + '/api/' + conn + '/tables/' + table + '/structure')
           .then(res => {
-            this.structure = res.data;
+            this.structure = res.data.result;
           });
     },
 

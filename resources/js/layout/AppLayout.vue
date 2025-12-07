@@ -42,7 +42,7 @@ import {useRoute, useRouter} from 'vue-router';
 import Breadcrumb from "../components/Breadcrumb.vue";
 import {useUiStore} from '../stores/UiStore';
 import GlobalToast from "../components/GlobalToast.vue";
-import {useToastStore} from '../stores/ToastStore'
+import {useToastStore} from '../stores/ToastStore';
 
 export default {
   components: {GlobalToast, Breadcrumb, Sidebar, Topbar},

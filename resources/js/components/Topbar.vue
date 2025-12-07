@@ -116,6 +116,12 @@ export default {
           icon: 'table',
           active: this.route.name === 'tables',
           click: () => this.router.push({name: 'tables', params: {connection: this.connection.value}})
+        },
+        {
+          label: 'Query',
+          icon: 'question',
+          active: this.route.name === 'query',
+          click: () => this.router.push({name: 'query', params: {connection: this.connection.value}})
         }
       ];
 

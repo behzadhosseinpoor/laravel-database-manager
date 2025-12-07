@@ -230,8 +230,8 @@ export default {
           }
         });
 
-        this.serverData = res.data.data ?? [];
-        this.serverTotal = res.data.total ?? 0;
+        this.serverData = res.data.result.data ?? res.data.result.rows ?? [];
+        this.serverTotal = res.data.result.total ?? 0;
       } finally {
         this.loading = false;
       }
@@ -268,15 +268,23 @@ export default {
         const fa = a[this.sortField];
         const fb = b[this.sortField];
 
-        if (fa == null) return 1;
-        if (fb == null) return -1;
+        if (fa == null && fb == null) return 0;
+
+        if (fa == null) {
+          return this.sortDir === "asc" ? -1 : 1;
+        }
+
+        if (fb == null) {
+          return this.sortDir === "asc" ? 1 : -1;
+        }
 
         if (fa < fb) return this.sortDir === "asc" ? -1 : 1;
         if (fa > fb) return this.sortDir === "asc" ? 1 : -1;
 
         return 0;
-      })
+      });
     },
+
 
     paginatedData() {
       if (this.url) return this.effectiveData;

@@ -44,3 +44,17 @@
 .stat-value {
     @apply text-2xl font-bold mt-1 text-gray-800 dark:text-gray-100;
 }
+
+.collapse-enter-from, .collapse-leave-to {
+    max-height: 0;
+    opacity: 0;
+}
+
+.collapse-enter-to, .collapse-leave-from {
+    max-height: 300px;
+    opacity: 1;
+}
+
+.collapse-enter-active, .collapse-leave-active {
+    transition: all 0.25s ease;
+}

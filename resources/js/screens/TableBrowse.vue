@@ -91,7 +91,7 @@ export default {
       return this.$http
           .get('/' + DatabaseManager.basePath + '/api/' + conn + '/tables/' + table + '/structure')
           .then(res => {
-            this.structure = res.data;
+            this.structure = res.data.result;
             this.columns = this.mapColumnsForTable(this.structure);
           });
     },

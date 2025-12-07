@@ -281,6 +281,58 @@ class MySqlDriver implements DatabaseDriver
             ->limit($perPage)
             ->get();
 
-        return $data->toArray();
+        return [
+            'data' => $data->toArray(),
+            'total' => $this->getTableRowsCount($table),
+        ];
+    }
+
+    public function affectingStatement(string $query): array
+    {
+        $start = microtime(true);
+
+        $affected = $this->db()->affectingStatement($query);
+
+        return [
+            'affected' => $affected,
+            'time' => (int)((microtime(true) - $start) * 1000),
+        ];
+    }
+
+    public function select(string $query, int $page, int $perPage): array
+    {
+        $start = microtime(true);
+        $userHasLimit = preg_match('/\bLIMIT\b/i', $query);
+
+        if ($userHasLimit) {
+            $rows = $this->q($query);
+            $rows = json_decode(json_encode($rows), true);
+
+            return [
+                'rows' => $rows,
+                'total' => count($rows),
+                'page' => 1,
+                'per_page' => count($rows),
+                'time' => (int)((microtime(true) - $start) * 1000),
+            ];
+        }
+
+        $cleanSql = preg_replace('/\bLIMIT\b[\s\S]*/i', '', $query);
+        $cleanSql = str_replace(';', '', $cleanSql);
+
+        $count = $this->qOne("SELECT COUNT(*) as total FROM ($cleanSql) AS t")->total ?? 0;
+
+        $offset = ($page - 1) * $perPage;
+
+        $rows = $this->q("$cleanSql LIMIT $perPage OFFSET $offset");
+        $rows = json_decode(json_encode($rows), true);
+
+        return [
+            'rows' => $rows,
+            'total' => $count,
+            'page' => $page,
+            'per_page' => $perPage,
+            'time' => (int)((microtime(true) - $start) * 1000),
+        ];
     }
 }

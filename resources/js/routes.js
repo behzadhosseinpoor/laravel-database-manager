@@ -5,6 +5,7 @@ import Overview from "./screens/Overview.vue";
 import Tables from "./screens/Tables.vue";
 import TableBrowse from "./screens/TableBrowse.vue";
 import TableStructure from "./screens/TableStructure.vue";
+import Query from "./screens/Query.vue";
 
 export default [
     {
@@ -17,6 +18,12 @@ export default [
                 name: 'overview',
                 component: Overview,
                 meta: {title: 'Overview'}
+            },
+            {
+                path: 'query',
+                name: 'query',
+                component: Query,
+                meta: {title: 'Query'}
             },
             {
                 path: 'tables',

@@ -51,4 +51,8 @@ interface DatabaseDriver
     public function getTableRowsCount(string $table, string $type = 'schema'): int;
 
     public function browse(string $table, int $page, int $perPage, ?string $orderBy = null, ?string $orderType = null): array;
+
+    public function affectingStatement(string $query): array;
+
+    public function select(string $query, int $page, int $perPage): array;
 }

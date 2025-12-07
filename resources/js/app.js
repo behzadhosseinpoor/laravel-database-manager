@@ -34,9 +34,7 @@ const router = createRouter({
     routes: Routes,
 });
 
-const pinia = createPinia();
-
-app.use(pinia);
+app.use(createPinia());
 
 app.use(router);
 

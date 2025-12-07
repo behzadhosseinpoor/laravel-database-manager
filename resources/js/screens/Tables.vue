@@ -24,7 +24,7 @@
     </div>
   </div>
 
-  <DataTable :key="tableKey" :data="tables" :columns="columns" :showActions="true">
+  <DataTable :key="tableKey" :data="tables" :columns="columns" :showActions="true" :useQueryParams="false">
     <template #actions="{ row }">
       <div class="flex items-center gap-2 justify-center">
         <button
@@ -105,7 +105,7 @@ export default {
       return this.$http
           .get('/' + DatabaseManager.basePath + '/api/' + conn + '/tables')
           .then(res => {
-            this.tables = res.data;
+            this.tables = res.data.result;
           });
     },
 

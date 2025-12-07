@@ -5,6 +5,7 @@
 
 namespace BehzadHosseinPoor\DatabaseManager\Http\Controllers;
 
+use BehzadHosseinPoor\DatabaseManager\Helpers\ApiResponse;
 use BehzadHosseinPoor\DatabaseManager\Services\DatabaseDriverFactory;
 use Illuminate\Http\JsonResponse;
 
@@ -14,9 +15,12 @@ class DatabaseTableStructureController extends Controller
     {
         $driver = DatabaseDriverFactory::make($connection);
 
-        return response()->json([
-            'columns' => $driver->getColumns($table),
-            'indexes' => $driver->getIndexes($table),
-        ]);
+        return ApiResponse::json(
+            200,
+            result: [
+                'columns' => $driver->getColumns($table),
+                'indexes' => $driver->getIndexes($table),
+            ],
+        );
     }
 }

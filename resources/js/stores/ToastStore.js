@@ -8,7 +8,7 @@ export const useToastStore = defineStore('toast', {
     }),
 
     actions: {
-        show(message, type = 'success', timeout = 5000) {
+        show(message, type = 'success', timeout = 10000) {
             const id = Date.now();
 
             this.toasts.push({id, message, type});

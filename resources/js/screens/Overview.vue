@@ -145,7 +145,7 @@ export default {
       return this.$http
           .get('/' + DatabaseManager.basePath + '/api/' + conn + '/overview')
           .then(res => {
-            this.overview = res.data;
+            this.overview = res.data.result;
           });
     },
 
