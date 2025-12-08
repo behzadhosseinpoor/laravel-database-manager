@@ -12,6 +12,8 @@ Route::prefix('api/{connection}')->middleware(ValidateConnection::class)->name('
     Route::prefix('tables/{table}')->middleware(ValidateTable::class)->group(function () {
         Route::get('structure', 'DatabaseTableStructureController@index')->name('structure.index');
         Route::get('browse', 'DatabaseTableBrowseController@index')->name('browse.index');
+        Route::post('truncate', 'DatabaseTableTruncateController@index')->name('truncate.index');
+        Route::post('drop', 'DatabaseTableDropController@index')->name('drop.index');
     });
 });
 

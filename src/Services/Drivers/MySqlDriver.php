@@ -1,6 +1,6 @@
 <?php
+/** @noinspection PhpUnhandledExceptionInspection */
 /** @noinspection PhpIncompatibleReturnTypeInspection */
-
 /** @noinspection SqlNoDataSourceInspection */
 
 namespace BehzadHosseinPoor\DatabaseManager\Services\Drivers;
@@ -19,6 +19,10 @@ class MySqlDriver implements DatabaseDriver
         $this->conn = $connection;
     }
 
+    /* -------------------------------------------------------------------------
+     | Core Helpers
+     |-------------------------------------------------------------------------- */
+
     protected function db(): MySqlConnection
     {
         return DB::connection($this->conn);
@@ -29,14 +33,14 @@ class MySqlDriver implements DatabaseDriver
         return Schema::connection($this->conn);
     }
 
-    protected function qOne(string $sql, array $params = []): object
+    protected function qOne(string $sql, array $params = []): ?object
     {
-        return DB::connection($this->conn)->selectOne($sql, $params);
+        return $this->db()->selectOne($sql, $params);
     }
 
-    public function q($query, $bindings = []): array
+    protected function q(string $query, array $bindings = []): array
     {
-        return DB::connection($this->conn)->select($query, $bindings);
+        return $this->db()->select($query, $bindings);
     }
 
     public function database(): string
@@ -49,190 +53,171 @@ class MySqlDriver implements DatabaseDriver
         return 'mysql';
     }
 
+    /* -------------------------------------------------------------------------
+     | Metadata: Version, Size, Counts
+     |-------------------------------------------------------------------------- */
+
     public function version(): string
     {
-        return $this->qOne("SELECT VERSION() AS v")->v;
+        return (string)$this->qOne("SELECT VERSION() AS v")->v;
     }
 
     public function size(): int
     {
-        $row = $this->qOne("
-            SELECT SUM(data_length + index_length) AS size
-            FROM information_schema.tables
-            WHERE table_schema = ?
-        ", [$this->database()]);
-
-        return (int)($row->size ?? 0);
+        return (int)$this->db()->table('information_schema.tables')
+            ->where('table_schema', $this->database())
+            ->selectRaw('SUM(data_length + index_length) AS size')
+            ->value('size');
     }
 
     public function tableCount(): int
     {
-        return (int)$this->qOne("
-            SELECT COUNT(*) AS c
-            FROM information_schema.tables
-            WHERE table_schema = ? AND table_type = 'BASE TABLE'
-        ", [$this->database()])->c;
+        return $this->db()->table('information_schema.tables')
+            ->where('table_schema', $this->database())
+            ->where('table_type', 'BASE TABLE')
+            ->count();
     }
 
     public function viewCount(): int
     {
-        return (int)$this->qOne("
-            SELECT COUNT(*) AS c
-            FROM information_schema.tables
-            WHERE table_schema = ? AND table_type = 'VIEW'
-        ", [$this->database()])->c;
+        return $this->db()->table('information_schema.tables')
+            ->where('table_schema', $this->database())
+            ->where('table_type', 'VIEW')
+            ->count();
     }
 
     public function columnCount(): int
     {
-        return (int)$this->qOne("
-            SELECT COUNT(*) AS c
-            FROM information_schema.columns
-            WHERE table_schema = ?
-        ", [$this->database()])->c;
+        return $this->db()->table('information_schema.columns')
+            ->where('table_schema', $this->database())
+            ->count();
     }
 
     public function indexCount(): int
     {
-        return (int)$this->qOne("
-            SELECT COUNT(DISTINCT index_name) AS c
-            FROM information_schema.statistics
-            WHERE table_schema = ? AND index_name != 'PRIMARY'
-        ", [$this->database()])->c;
+        return $this->db()->table('information_schema.statistics')
+            ->where('table_schema', $this->database())
+            ->where('index_name', '!=', 'PRIMARY')
+            ->distinct()
+            ->count('index_name');
     }
 
     public function primaryKeyCount(): int
     {
-        return (int)$this->qOne("
-            SELECT COUNT(*) AS c
-            FROM information_schema.statistics
-            WHERE table_schema = ?
-              AND index_name = 'PRIMARY'
-        ", [$this->database()])->c;
+        return $this->db()->table('information_schema.statistics')
+            ->where('table_schema', $this->database())
+            ->where('index_name', 'PRIMARY')
+            ->count();
     }
 
     public function uniqueIndexCount(): int
     {
-        return (int)$this->qOne("
-            SELECT COUNT(DISTINCT index_name) AS c
-            FROM information_schema.statistics
-            WHERE table_schema = ?
-              AND NON_UNIQUE = 0
-              AND index_name != 'PRIMARY'
-        ", [$this->database()])->c;
+        return $this->db()->table('information_schema.statistics')
+            ->where('table_schema', $this->database())
+            ->where('NON_UNIQUE', 0)
+            ->where('index_name', '!=', 'PRIMARY')
+            ->distinct()
+            ->count('index_name');
     }
 
     public function foreignKeyCount(): int
     {
-        return (int)$this->qOne("
-            SELECT COUNT(*) AS c
-            FROM information_schema.KEY_COLUMN_USAGE
-            WHERE table_schema = ?
-              AND referenced_table_name IS NOT NULL
-        ", [$this->database()])->c;
+        return $this->db()->table('information_schema.KEY_COLUMN_USAGE')
+            ->where('table_schema', $this->database())
+            ->whereNotNull('referenced_table_name')
+            ->count();
     }
 
     public function triggerCount(): int
     {
-        return (int)$this->qOne("
-            SELECT COUNT(*) AS c
-            FROM information_schema.triggers
-            WHERE trigger_schema = ?
-        ", [$this->database()])->c;
+        return $this->db()->table('information_schema.triggers')
+            ->where('trigger_schema', $this->database())
+            ->count();
     }
 
     public function procedureCount(): int
     {
-        return (int)$this->qOne("
-            SELECT COUNT(*) AS c
-            FROM information_schema.routines
-            WHERE routine_schema = ?
-              AND routine_type = 'PROCEDURE'
-        ", [$this->database()])->c;
+        return $this->db()->table('information_schema.routines')
+            ->where('routine_schema', $this->database())
+            ->where('routine_type', 'PROCEDURE')
+            ->count();
     }
 
     public function functionCount(): int
     {
-        return (int)$this->qOne("
-            SELECT COUNT(*) AS c
-            FROM information_schema.routines
-            WHERE routine_schema = ?
-              AND routine_type = 'FUNCTION'
-        ", [$this->database()])->c;
+        return $this->db()->table('information_schema.routines')
+            ->where('routine_schema', $this->database())
+            ->where('routine_type', 'FUNCTION')
+            ->count();
     }
 
     public function totalRows(): int
     {
-        $row = $this->qOne("
-            SELECT SUM(table_rows) AS c
-            FROM information_schema.tables
-            WHERE table_schema = ?
-        ", [$this->database()]);
-
-        return (int)($row->c ?? 0);
+        return (int)$this->db()->table('information_schema.tables')
+            ->where('table_schema', $this->database())
+            ->sum('table_rows');
     }
 
     public function charset(): ?string
     {
-        $row = $this->qOne("
-            SELECT default_character_set_name AS charset
-            FROM information_schema.schemata
-            WHERE schema_name = ?
-        ", [$this->database()]);
-
-        return $row->charset ?? null;
+        return $this->db()->table('information_schema.schemata')
+            ->where('schema_name', $this->database())
+            ->value('default_character_set_name');
     }
 
     public function collation(): ?string
     {
-        $row = $this->qOne("
-            SELECT default_collation_name AS collation
-            FROM information_schema.schemata
-            WHERE schema_name = ?
-        ", [$this->database()]);
-
-        return $row->collation ?? null;
+        return $this->db()->table('information_schema.schemata')
+            ->where('schema_name', $this->database())
+            ->value('default_collation_name');
     }
+
+    /* -------------------------------------------------------------------------
+     | Server Status
+     |-------------------------------------------------------------------------- */
 
     public function uptimeSeconds(): int
     {
-        $row = $this->qOne("SHOW GLOBAL STATUS LIKE 'Uptime'");
-
-        return (int)($row->Value ?? 0);
+        return (int)($this->qOne("SHOW GLOBAL STATUS LIKE 'Uptime'")->Value ?? 0);
     }
 
     public function activeConnections(): int
     {
-        $row = $this->qOne("SHOW STATUS WHERE variable_name = 'Threads_connected'");
-
-        return (int)($row->Value ?? 0);
+        return (int)($this->qOne("SHOW STATUS WHERE variable_name = 'Threads_connected'")->Value ?? 0);
     }
+
+    /* -------------------------------------------------------------------------
+     | Table List
+     |-------------------------------------------------------------------------- */
 
     public function tables(): array
     {
-        $rows = $this->q("
-            SELECT
-                TABLE_NAME AS name,
-                TABLE_ROWS AS row_count,
-                ENGINE AS engine,
-                TABLE_COLLATION AS collation,
-                DATA_LENGTH AS data_size,
-                INDEX_LENGTH AS index_size
-            FROM information_schema.tables
-            WHERE table_schema = ?
-            ORDER BY TABLE_NAME;
-        ", [$this->database()]);
+        $rows = DB::table('information_schema.tables')
+            ->where('table_schema', $this->database())
+            ->orderBy('table_name')
+            ->get([
+                'table_name AS name',
+                'table_rows AS row_count',
+                'engine AS engine',
+                'table_collation AS collation',
+                'data_length AS data_length',
+                'index_length AS index_length'
+            ]);
 
-        return collect($rows)->map(function ($t) {
+        return $rows->map(function ($t) {
             return [
-                'name' => $t->name ?? null,
-                'rows' => (int)($t->row_count ?? 0),
-                'engine' => $t->engine ?? null,
-                'collation' => $t->collation ?? null,
-                'size' => (int)(($t->data_size ?? 0) + ($t->index_size ?? 0)),
+                'name' => $t->name,
+                'rows' => (int)$t->row_count,
+                'engine' => $t->engine,
+                'collation' => $t->collation,
+                'size' => (int)($t->data_length + $t->index_length),
             ];
         })->toArray();
     }
+
+    /* -------------------------------------------------------------------------
+     | Structure (Columns / Indexes)
+     |-------------------------------------------------------------------------- */
 
     public function hasTable(string $table): bool
     {
@@ -251,35 +236,31 @@ class MySqlDriver implements DatabaseDriver
 
     public function getTableRowsCount(string $table, string $type = 'schema'): int
     {
-        if ($type === 'schema') {
-            return (int)$this->qOne("
-                SELECT table_rows AS c
-                FROM information_schema.tables
-                WHERE table_schema = ?
-                AND table_name = ?;
-            ", [$this->database(), $table])->c;
-        }
-
-        if ($type === 'db') {
-            return $this->db()->table($table)->count();
-        }
-
-        return 0;
+        return match ($type) {
+            'schema' => (int)$this->db()->table('information_schema.tables')
+                ->where('table_schema', $this->database())
+                ->where('table_name', $table)
+                ->value('table_rows'),
+            'db' => $this->db()->table($table)->count(),
+            default => 0,
+        };
     }
+
+    /* -------------------------------------------------------------------------
+     | Browse & Select
+     |-------------------------------------------------------------------------- */
 
     public function browse(string $table, int $page, int $perPage, ?string $orderBy = null, ?string $orderType = null): array
     {
         $query = $this->db()->table($table);
 
-        $offset = ($page - 1) * $perPage;
-
         if ($orderBy) {
             $query->orderBy($orderBy, $orderType);
         }
 
-        $data = $query->offset($offset)
-            ->limit($perPage)
-            ->get();
+        $offset = ($page - 1) * $perPage;
+
+        $data = $query->offset($offset)->limit($perPage)->get();
 
         return [
             'data' => $this->fixBinary($data->all()),
@@ -287,64 +268,86 @@ class MySqlDriver implements DatabaseDriver
         ];
     }
 
-    public function affectingStatement(string $query): array
+    public function affectingStatement(string $query): int
     {
-        $start = microtime(true);
-
-        $affected = $this->db()->affectingStatement($query);
-
-        return [
-            'affected' => $affected,
-            'time' => (int)((microtime(true) - $start) * 1000),
-        ];
+        return $this->db()->affectingStatement($query);
     }
 
     public function select(string $query, int $page, int $perPage): array
     {
-        $start = microtime(true);
-        $userHasLimit = preg_match('/\bLIMIT\b/i', $query);
+        $hasLimit = preg_match('/\bLIMIT\b/i', $query);
 
-        if ($userHasLimit) {
-            $rows = $this->q($query);
-            $rows = $this->fixBinary($rows);
+        if ($hasLimit) {
+            $rows = $this->fixBinary($this->q($query));
 
             return [
                 'rows' => $rows,
                 'total' => count($rows),
-                'page' => 1,
-                'per_page' => count($rows),
-                'time' => (int)((microtime(true) - $start) * 1000),
             ];
         }
 
-        $cleanSql = preg_replace('/\bLIMIT\b[\s\S]*/i', '', $query);
-        $cleanSql = str_replace(';', '', $cleanSql);
+        $clean = preg_replace('/\bLIMIT\b[\s\S]*/i', '', $query);
+        $clean = str_replace(';', '', $clean);
 
-        $count = $this->qOne("SELECT COUNT(*) as total FROM ($cleanSql) AS t")->total ?? 0;
+        $countQuery = DB::connection($this->conn)
+            ->selectOne("SELECT COUNT(*) AS total FROM ($clean) AS t");
+
+        $total = (int)($countQuery->total ?? 0);
 
         $offset = ($page - 1) * $perPage;
 
-        $rows = $this->q("$cleanSql LIMIT $perPage OFFSET $offset");
-        $rows = $this->fixBinary($rows);
+        $rows = $this->q("$clean LIMIT $perPage OFFSET $offset");
 
         return [
-            'rows' => $rows,
-            'total' => $count,
-            'page' => $page,
-            'per_page' => $perPage,
-            'time' => (int)((microtime(true) - $start) * 1000),
+            'rows' => $this->fixBinary($rows),
+            'total' => $total,
         ];
     }
 
-    private function fixBinary(array $data): array
+    public function drop(string $table, bool $foreignKeyCheck): void
     {
-        return collect($data)
-            ->map(fn($row) => collect((array)$row)
-                ->map(fn($value) => is_string($value) && !mb_check_encoding($value, 'UTF-8')
-                    ? ':::___DATABASE___MANAGER___ENCODED___:::' . base64_encode($value)
-                    : $value
-                )->toArray()
-            )
-            ->toArray();
+        try {
+            if ($foreignKeyCheck === false) {
+                $this->db()->statement('SET FOREIGN_KEY_CHECKS = 0;');
+            }
+
+            $this->schema()->drop($table);
+        } finally {
+            if ($foreignKeyCheck === false) {
+                $this->db()->statement('SET FOREIGN_KEY_CHECKS = 1;');
+            }
+        }
+    }
+
+    public function truncate(string $table, bool $foreignKeyCheck): void
+    {
+        try {
+            if ($foreignKeyCheck === false) {
+                $this->db()->statement('SET FOREIGN_KEY_CHECKS = 0;');
+            }
+
+            $this->db()->table($table)->truncate();
+        } finally {
+            if ($foreignKeyCheck === false) {
+                $this->db()->statement('SET FOREIGN_KEY_CHECKS = 1;');
+            }
+        }
+    }
+
+    /* -------------------------------------------------------------------------
+     | Internal Helpers
+     |-------------------------------------------------------------------------- */
+
+    protected function fixBinary(array $data): array
+    {
+        return collect($data)->map(function ($row) {
+            return collect((array)$row)->map(function ($value) {
+                if (is_string($value) && !mb_check_encoding($value, 'UTF-8')) {
+                    return ':::___DATABASE___MANAGER___ENCODED___:::' . base64_encode($value);
+                }
+
+                return $value;
+            })->toArray();
+        })->toArray();
     }
 }

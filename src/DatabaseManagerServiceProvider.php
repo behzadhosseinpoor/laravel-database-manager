@@ -6,6 +6,8 @@
 namespace BehzadHosseinPoor\DatabaseManager;
 
 use BehzadHosseinPoor\DatabaseManager\Console\InstallCommand;
+use BehzadHosseinPoor\DatabaseManager\Exceptions\DatabaseManagerExceptionHandler;
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Foundation\CachesRoutes;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -44,6 +46,7 @@ class DatabaseManagerServiceProvider extends ServiceProvider
         $this->registerResources();
         $this->offerPublishing();
         $this->registerCommands();
+        $this->registerExceptionHandler();
     }
 
     /**
@@ -186,6 +189,21 @@ class DatabaseManagerServiceProvider extends ServiceProvider
     protected function registerResources(): void
     {
         $this->loadViewsFrom(__DIR__ . '/../resources/views', 'database-manager');
+    }
+
+    /**
+     * Register the Database Manager exception handler.
+     *
+     * @return void
+     */
+    protected function registerExceptionHandler(): void
+    {
+        $this->app->extend(
+            ExceptionHandler::class,
+            function ($handler, $app) {
+                return new DatabaseManagerExceptionHandler($app);
+            }
+        );
     }
 
     /**

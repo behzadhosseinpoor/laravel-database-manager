@@ -42,11 +42,8 @@ class ApiResponse
         array   $rows = [],
         ?string $message = null,
         ?string $code = null,
-        ?int    $page = null,
-        ?int    $perPage = null,
         ?int    $total = null,
         ?int    $affected = null,
-        ?int    $time = null,
     ): JsonResponse
     {
         $response = [
@@ -63,9 +60,6 @@ class ApiResponse
             'rows' => $rows,
             'total' => $total,
             'affected' => $affected,
-            'page' => $page,
-            'per_page' => $perPage,
-            'time_ms' => $time,
         ];
 
         return response()->json(

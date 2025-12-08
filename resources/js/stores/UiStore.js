@@ -1,20 +1,17 @@
 import {defineStore} from 'pinia';
-import {ref} from "vue";
 
-export const useUiStore = defineStore('ui', () => {
-    const ready = ref(true);
+export const useUiStore = defineStore('ui', {
+    state: () => ({
+        ready: true,
+    }),
 
-    function showLoading() {
-        ready.value = false;
+    actions: {
+        showLoading() {
+            this.ready = false;
+        },
+
+        hideLoading() {
+            this.ready = true;
+        }
     }
-
-    function hideLoading() {
-        ready.value = true;
-    }
-
-    return {
-        ready,
-        showLoading,
-        hideLoading,
-    };
 });

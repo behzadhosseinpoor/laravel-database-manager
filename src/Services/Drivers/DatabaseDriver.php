@@ -4,6 +4,8 @@ namespace BehzadHosseinPoor\DatabaseManager\Services\Drivers;
 
 interface DatabaseDriver
 {
+    public function database(): string;
+
     public function name(): string;
 
     public function version(): string;
@@ -52,7 +54,11 @@ interface DatabaseDriver
 
     public function browse(string $table, int $page, int $perPage, ?string $orderBy = null, ?string $orderType = null): array;
 
-    public function affectingStatement(string $query): array;
+    public function affectingStatement(string $query): int;
 
     public function select(string $query, int $page, int $perPage): array;
+
+    public function drop(string $table, bool $foreignKeyCheck): void;
+
+    public function truncate(string $table, bool $foreignKeyCheck): void;
 }

@@ -8,7 +8,6 @@ use BehzadHosseinPoor\DatabaseManager\Http\Requests\QueryRequest;
 use BehzadHosseinPoor\DatabaseManager\Services\DatabaseDriverFactory;
 use BehzadHosseinPoor\DatabaseManager\Services\Drivers\DatabaseDriver;
 use Illuminate\Http\JsonResponse;
-use Throwable;
 
 class DatabaseQueryController extends Controller
 {
@@ -20,59 +19,39 @@ class DatabaseQueryController extends Controller
         $page = max(1, (int)$request->input('page', 1));
         $perPage = max(10, (int)$request->input('per_page', 10));
 
-        try {
-            if (substr_count($query, ';') > 1) {
-                return $this->error("Multiple statements are not allowed.");
-            }
-
-            $isSelect = preg_match('/^\s*SELECT/i', $query);
-
-            if ($isSelect) {
-                return $this->runSelect($driver, $query, $page, $perPage);
-            } else {
-                return $this->runWrite($driver, $query);
-            }
-
-        } catch (Throwable $e) {
-            return $this->error($e->getMessage(), $e->getCode());
+        if (substr_count($query, ';') > 1) {
+            return ApiResponse::json(
+                status: 400,
+                message: 'Multiple statements are not allowed.',
+            );
         }
-    }
 
-    private function error(string $message, ?string $code = null): JsonResponse
-    {
-        return ApiResponse::query(
-            type: 'error',
-            ok: false,
-            message: $message,
-            code: $code
-        );
-    }
+        $isSelect = preg_match('/^\s*SELECT/i', $query);
 
-    private function runWrite(DatabaseDriver $driver, string $query): JsonResponse
-    {
-        $affected = $driver->affectingStatement($query);
+        if ($isSelect) {
+            return $this->runSelect($driver, $query, $page, $perPage);
+        } else {
+            $affected = $driver->affectingStatement($query);
 
-        return ApiResponse::query(
-            type: 'write',
-            message: 'Query executed successfully',
-            affected: $affected['affected'],
-            time: $affected['time'],
-        );
+            return ApiResponse::json(
+                status: 200,
+                message: "Query executed successfully — affected rows: $affected",
+            );
+        }
     }
 
     private function runSelect(DatabaseDriver $driver, string $query, int $page, int $perPage): JsonResponse
     {
         $select = $driver->select($query, $page, $perPage);
-        $columns = $this->extractColumns($select['rows'][0]);
+        $columns = $this->extractColumns($select['rows'][0] ?? []);
 
-        return ApiResponse::query(
-            type: 'select',
-            columns: $columns,
-            rows: $select['rows'],
-            page: $select['page'],
-            perPage: $select['per_page'],
-            total: $select['total'],
-            time: $select['time'],
+        return ApiResponse::json(
+            status: 200,
+            result: [
+                'columns' => $columns,
+                'rows' => $select['rows'],
+                'total' => $select['total'],
+            ],
         );
     }
 

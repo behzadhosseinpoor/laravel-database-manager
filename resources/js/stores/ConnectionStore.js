@@ -1,30 +1,27 @@
 // noinspection JSUnresolvedReference
 
 import {defineStore} from 'pinia';
-import {ref} from 'vue';
 
-export const useConnectionStore = defineStore('connection', () => {
-    const connections = ref([]);
-    const defaultConnection = ref(null);
+export const useConnectionStore = defineStore('connection', {
+    state: () => ({
+        connections: [],
+        defaultConnection: null,
+    }),
 
-    function setConnections(list) {
-        connections.value = list;
+    actions: {
+        setConnections(list) {
+            this.connections = list;
 
-        if (!defaultConnection.value && list.length > 0) {
-            defaultConnection.value = list[0];
+            if (!this.defaultConnection && list.length > 0) {
+                this.defaultConnection = list[0];
+            }
+        },
+
+        setDefault(conn) {
+            if (this.connections.includes(conn)) {
+                this.defaultConnection = conn;
+            }
         }
     }
-
-    function setDefault(conn) {
-        if (connections.value.includes(conn)) {
-            defaultConnection.value = conn;
-        }
-    }
-
-    return {
-        connections,
-        defaultConnection,
-        setConnections,
-        setDefault,
-    };
 });
+

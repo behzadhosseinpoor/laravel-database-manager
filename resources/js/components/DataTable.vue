@@ -155,6 +155,7 @@
 <script>
 import {useRoute, useRouter} from "vue-router"
 import BinaryDownload from "./BinaryDownload.vue";
+import api from "../libraries/api.js";
 
 export default {
     components: {BinaryDownload},
@@ -238,7 +239,7 @@ export default {
             this.serverData = [];
 
             try {
-                const res = await this.$http.get(this.url, {
+                const res = await api.get(this.url, {
                     params: {
                         page: this.currentPage,
                         per_page: this.pageSize,
