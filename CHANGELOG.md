@@ -1,6 +1,18 @@
 # Release Notes
 
-## [Unreleased](https://github.com/behzadhosseinpoor/laravel-database-manager/compare/v1.0.1...main)
+## [Unreleased](https://github.com/behzadhosseinpoor/laravel-database-manager/compare/v1.0.2...main)
+
+## v1.0.2 (2025-12-08)
+
+### Fixed
+
+- Correct binary data detection via prefix
+- Center align download button in table cells
+- Added BinaryDownload component integration improvements
+
+### Improved
+
+- UI consistency for table rendering
 
 ## v1.0.1 (2025-12-07)
 

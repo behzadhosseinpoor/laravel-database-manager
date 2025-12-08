@@ -341,7 +341,7 @@ class MySqlDriver implements DatabaseDriver
         return collect($data)
             ->map(fn($row) => collect((array)$row)
                 ->map(fn($value) => is_string($value) && !mb_check_encoding($value, 'UTF-8')
-                    ? base64_encode($value)
+                    ? ':::___DATABASE___MANAGER___ENCODED___:::' . base64_encode($value)
                     : $value
                 )->toArray()
             )
