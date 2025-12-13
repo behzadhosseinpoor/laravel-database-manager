@@ -6,8 +6,7 @@
 namespace BehzadHosseinPoor\DatabaseManager;
 
 use BehzadHosseinPoor\DatabaseManager\Console\InstallCommand;
-use BehzadHosseinPoor\DatabaseManager\Exceptions\DatabaseManagerExceptionHandler;
-use Illuminate\Contracts\Debug\ExceptionHandler;
+use BehzadHosseinPoor\DatabaseManager\Http\Middleware\DatabaseManagerExceptionMiddleware;
 use Illuminate\Contracts\Foundation\CachesRoutes;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -46,7 +45,6 @@ class DatabaseManagerServiceProvider extends ServiceProvider
         $this->registerResources();
         $this->offerPublishing();
         $this->registerCommands();
-        $this->registerExceptionHandler();
     }
 
     /**
@@ -175,7 +173,7 @@ class DatabaseManagerServiceProvider extends ServiceProvider
             'domain' => config('database-manager.domain'),
             'prefix' => config('database-manager.path'),
             'namespace' => 'BehzadHosseinPoor\DatabaseManager\Http\Controllers',
-            'middleware' => config('database-manager.middleware', 'web'),
+            'middleware' => $this->getMiddlewares(),
         ], function () {
             $this->loadRoutesFrom(__DIR__ . '/../routes/web.php');
         });
@@ -192,21 +190,6 @@ class DatabaseManagerServiceProvider extends ServiceProvider
     }
 
     /**
-     * Register the Database Manager exception handler.
-     *
-     * @return void
-     */
-    protected function registerExceptionHandler(): void
-    {
-        $this->app->extend(
-            ExceptionHandler::class,
-            function ($handler, $app) {
-                return new DatabaseManagerExceptionHandler($app);
-            }
-        );
-    }
-
-    /**
      * Register the Database Manager Artisan commands.
      *
      * @return void
@@ -218,5 +201,22 @@ class DatabaseManagerServiceProvider extends ServiceProvider
                 InstallCommand::class,
             ]);
         }
+    }
+
+    protected function getMiddlewares(): array
+    {
+        $middlewares = config('database-manager.middleware', ['web']);
+
+        if (is_string($middlewares)) {
+            $middlewares = [$middlewares];
+        }
+
+        if (!is_array($middlewares)) {
+            $middlewares = [];
+        }
+
+        $middlewares[] = DatabaseManagerExceptionMiddleware::class;
+
+        return $middlewares;
     }
 }
