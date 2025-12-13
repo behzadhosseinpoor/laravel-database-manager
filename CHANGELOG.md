@@ -1,6 +1,25 @@
 # Release Notes
 
-## [Unreleased](https://github.com/behzadhosseinpoor/laravel-database-manager/compare/v1.1.0...main)
+## [Unreleased](https://github.com/behzadhosseinpoor/laravel-database-manager/compare/v1.1.1...main)
+
+## v1.1.1 (2025-12-13)
+
+### Fixed
+
+- Fixed an issue where the package was overriding Laravel's global ExceptionHandler
+- Restored application's default 404 and error handling behavior
+- Ensured package errors are handled only within database-manager routes
+
+### Changed
+
+- Replaced global ExceptionHandler extension with a route-level middleware
+- Normalized `database-manager.middleware` config to support string or array values
+- Automatically merged package internal middleware with user-defined middlewares
+
+### Notes
+
+- This update does not introduce breaking changes
+- Users can safely customize middlewares without affecting application-level exception handling
 
 ## v1.1.0 (2025-12-08)
 
